@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTextEdit, QPushButton, QLabel
 import numpy as np
-
+from newProgram import newProgram, createProgramGUI
 # 定义基本的量子操作矩阵
 MATRICES = {
     "H": np.array([[1, 1], [1, -1]]) / np.sqrt(2),  # Hadamard 门
@@ -17,10 +17,8 @@ class QuantumGUI(QWidget):
         self.initUI()
 
     def initUI(self):
-        layout = QVBoxLayout()
-
-        add_button = QPushButton("Add statement")
-        add_button.clicked.connect(self.addStatement)
+        layout = createProgramGUI()
+        self.setLayout(layout)
 
         # self.label = QLabel("输入量子程序:")
         # layout.addWidget(self.label)
@@ -43,16 +41,16 @@ class QuantumGUI(QWidget):
         # self.setWindowTitle("量子程序解析器")
 
     def addStatement(self):
-        
+        pass        
 
 
     def processProgram(self):
-        program_text = self.textEdit.toPlainText()
-        result = parse_quantum_program(program_text)
-        self.resultText.setPlainText(result)
-
+        # program_text = self.textEdit.toPlainText()
+        # result = parse_quantum_program(program_text)
+        # self.resultText.setPlainText(result)
+        pass
 if __name__ == "__main__":
     app = QApplication([])
-    gui = QuantumGUI()
+    gui = createProgramGUI()
     gui.show()
     app.exec()

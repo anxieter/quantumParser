@@ -92,3 +92,9 @@ class whileStatement(statement): # while M[q] = 1 do S
 
     def matrix(self):
         return self.mat.matrix()
+    
+class variable:
+    def __init__(self, name):
+        self.name = name
+    def __str__(self):
+        return self.name
