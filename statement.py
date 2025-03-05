@@ -1,5 +1,11 @@
 import numpy as np
 
+class var:
+    def __init__(self, t):
+        self.name = t[0]
+        self.qubits = t[1]
+    def __str__(self):
+        return f"{self.name}({str(self.qubits)})"
 class statement:
     def __init__(self, type):
         self.type = type
@@ -28,8 +34,25 @@ class assignmentOperator(quantumOperator):
                 t = t - i & (1 << j) # set j-th bit to 0
             self.mat[t][i] = 1
 
+def swap_qubits(i, j, n_qubits):
+    U = np.eye(2**n_qubits)
+    U[i, i] = 0
+    U[j, j] = 0
+    U[i, j] = 1
+    U[j, i] = 1
+    return U
+
+def expand_operator(U, target_qubits, n_qubits):
+    """扩展作用在 target_qubits 上的矩阵 U 到 n_qubits 量子比特的全局矩阵"""
+    # step1 swap target_qubits to the first k qubits
+    k = len(target_qubits)
+    swap_matrix = np.eye(2**n_qubits)
+    for i in range(k):
+        if target_qubits[i] != i:
+            swap_matrix = np.dot(swap_matrix, swap_qubits(i, target_qubits[i], n_qubits))
+            
 class unitaryOperator(quantumOperator):
-    def __init__(self, n, unitary_np):
+    def __init__(self, n, unitary_np, tp): # extend to n qubit transformation
         super().__init__(n)
         self.mat = unitary_np
     def __str__(self):
@@ -56,14 +79,13 @@ class assignment(statement): # p = q
         # sum of \ket{q}\bra{i} for all i in 2^indices
         return self.qo.matrix()
 
-class unitaryTransform(statement): # p =Uq
-    def __init__(self, n, p, q, U):
+class unitaryTransform(statement): # p =U[p]
+    def __init__(self, n, p:var,  U):
         super().__init__("unitaryTransform")
         self.p = p
-        self.q = q
-        self.U = unitaryOperator(n, U)
+        self.U = unitaryOperator(n, U, p.qubits)
     def __str__(self):
-        return f"{self.p} = {self.U}{self.q}"
+        return f"{self.p} = {self.U}{self.p}"
 
     def matrix(self):
         return self.U.matrix() 
