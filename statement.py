@@ -50,7 +50,13 @@ def expand_operator(U, target_qubits, n_qubits):
     for i in range(k):
         if target_qubits[i] != i:
             swap_matrix = np.dot(swap_matrix, swap_qubits(i, target_qubits[i], n_qubits))
-            
+
+    U = np.kron(U, np.eye(2**(n_qubits - k)))
+    # step3 swap back
+    U = U @ swap_matrix.T
+    return U
+
+    
 class unitaryOperator(quantumOperator):
     def __init__(self, n, unitary_np, tp): # extend to n qubit transformation
         super().__init__(n)
