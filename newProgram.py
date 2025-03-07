@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTextEdit, QPush
 import numpy as np
 from messages import errorMessage
 from statement import *
+from typing import List
 class programContainer:
     def __init__(self):
         self.program = None
@@ -9,13 +10,16 @@ class programContainer:
     
 class newProgram:
     def __init__(self):
-        self.statements = []
-        self.variables = []
-    def addStatement(self, statement):
+        self.n = 0
+        self.statements: List[statement]= []
+        self.variables: List[var] = []
+    def addStatement(self, statement:statement):
         print("adding statement", statement)
         self.statements.append(statement)
     def addVariable(self, variable):
         self.variables.append(var(variable))
+    def setN(self, n):
+        self.n = n
     def __str__(self):
         return "\n".join([str(s) for s in self.statements])
     
@@ -63,6 +67,7 @@ class createProgramGUI(QWidget):
         
     def setBits(self):
         self.n = int(self.bits_box.toPlainText())
+        self.program.setN(self.n)
         print("Qubits count set to", self.n)
 
     def addVariable(self):
@@ -141,7 +146,15 @@ class createProgramGUI(QWidget):
             self.currentDetail.addWidget(input_box)
             self.unitary_box = input_box
             
-        elif t == "while":
+        elif t == "while": # while M[q] = 1 do S od
+            qubit_label = QLabel("qubit to measure")
+            self.currentDetail.addWidget(qubit_label)
+            qubit_box = QComboBox()
+            qubit_box.setMaximumHeight(30)
+            for v in self.program.variables:
+                qubit_box.addItem(str(v[0]))
+            self.currentDetail.addWidget(qubit_box)
+            self.while_qubit_box = qubit_box
             label = QLabel("measurement for while loop continuation(a matrix)")
             self.currentDetail.addWidget(label)
             input_box = QTextEdit()
@@ -154,6 +167,14 @@ class createProgramGUI(QWidget):
             self.currentDetail.addWidget(add_program_button)
             
         elif t == "if":
+            qubit_label = QLabel("qubit to measure")
+            self.currentDetail.addWidget(qubit_label)
+            qubit_box = QComboBox()
+            qubit_box.setMaximumHeight(30)
+            for v in self.program.variables:
+                qubit_box.addItem(str(v[0]))
+            self.currentDetail.addWidget(qubit_box)
+            self.if_qubit_box = qubit_box
             label = QLabel("measurement for if condition(a matrix)")
             self.currentDetail.addWidget(label)
             input_box = QTextEdit()
@@ -170,12 +191,14 @@ class createProgramGUI(QWidget):
             self.currentDetail.addWidget(add_program_button2)
             
         elif t == "assignment":
-            label = QLabel("variable assigned to 0")
+            label = QLabel("variable to be assigned to 0")
             self.currentDetail.addWidget(label)
-            input_box = QTextEdit()
-            input_box.setMaximumHeight(60)
-            self.currentDetail.addWidget(input_box)
-            self.assignment_box = input_box
+            var_box = QComboBox()
+            var_box.setMaximumHeight(30)
+            for v in self.program.variables:
+                var_box.addItem(str(v[0]))
+            self.currentDetail.addWidget(var_box)
+            self.assignment_box = var_box
             
     
     def getWhileBody(self):
@@ -189,7 +212,24 @@ class createProgramGUI(QWidget):
             p = self.program.variables[self.unitary_var_box.currentIndex()]
             U = np.array([int(i) for i in self.unitary_box.toPlainText().split(",")]).reshape((n,n))
             self.program.addStatement(unitaryTransform(n, p, U))
-        self.program.addStatement(t)
+        if t == "while":
+            n = self.n
+            M = np.array([int(i) for i in self.while_box.toPlainText().split(",")]).reshape((2**n, 2**n))
+            q = self.program.variables[self.while_qubit_box.currentIndex()]
+            S = self.while_pc.program
+            self.program.addStatement(whileStatement(n, M, q, S))
+        if t == "if":
+            n = self.n
+            M = np.array([int(i) for i in self.if_box.toPlainText().split(",")]).reshape((2**n, 2**n))
+            q = self.program.variables[self.if_qubit_box.currentIndex()]
+            S = self.if_pc.program
+            E = self.else_pc.program
+            self.program.addStatement(ifStatement(n, M, q, S, E))
+        if t == "assignment":
+            n = self.n
+            p = self.program.variables[self.assignment_box.currentIndex()]
+            self.program.addStatement(assignment(n, p, U))
+            
         self.add_statement_window.close()
     
     def submitVariable(self):

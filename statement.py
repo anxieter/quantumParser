@@ -1,5 +1,12 @@
 import numpy as np
 import qutip
+
+SKIP = 0
+ASSIGNMENT = 1
+UNITARY_TRANSFORM = 2
+WHILE = 3
+IF = 4
+
 class var:
     def __init__(self, t):
         self.name = t[0]
@@ -60,7 +67,6 @@ class counter:
         self.cnt = 0
     
 def expand_operator(U, target_qubits, n_qubits):
-    """扩展作用在 target_qubits 上的矩阵 U 到 n_qubits 量子比特的全局矩阵"""
     # step1 swap target_qubits to the first k qubits
     k = len(target_qubits)
     rest = list(range(n_qubits))
@@ -100,15 +106,24 @@ class measurementOperator(quantumOperator):
     def __str__(self):
         return "M"
 
-class assignment(statement): # p = q
-    def __init__(self, n, p, q, indices):
-        super().__init__("assignment")
-        self.p = p
-        self.q = q
-        self.indices = indices
-        self.qo = assignmentOperator(n, q, indices)
+
+class skip(statement):
+    def __init__(self, n):
+        super().__init__(SKIP)
+        self.n = n 
     def __str__(self):
-        return f"{self.p} = {self.q}"
+        return "skip"
+    def matrix(self):
+        return np.eye(2**self.n)
+
+class assignment(statement): # p = 0
+    def __init__(self, n, p, indices):
+        super().__init__(ASSIGNMENT)
+        self.p = p
+        self.indices = indices
+        self.qo = assignmentOperator(n, p, indices)
+    def __str__(self):
+        return f"{self.p} = 0"
     
     def matrix(self):
         # sum of \ket{q}\bra{i} for all i in 2^indices
@@ -116,7 +131,7 @@ class assignment(statement): # p = q
 
 class unitaryTransform(statement): # p =U[p]
     def __init__(self, n, p:var,  U):
-        super().__init__("unitaryTransform")
+        super().__init__(UNITARY_TRANSFORM)
         self.p = p
         self.U = unitaryOperator(n, U, p.qubits)
     def __str__(self):
@@ -127,7 +142,7 @@ class unitaryTransform(statement): # p =U[p]
 
 class ifStatement(statement): # if M[q] = 1 then S1 else S2
     def __init__(self, n, M,  q, S1, S2):
-        super().__init__("ifStatement")
+        super().__init__(IF)
         self.mat = measurementOperator(n, M)
         self.q = q
         self.S1 = S1
@@ -140,7 +155,7 @@ class ifStatement(statement): # if M[q] = 1 then S1 else S2
 
 class whileStatement(statement): # while M[q] = 1 do S
     def __init__(self, n, M, q, S):
-        super().__init__("whileStatement")
+        super().__init__(WHILE)
         self.mat = measurementOperator(n, M)
         self.q = q
         self.S = S
