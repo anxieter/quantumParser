@@ -17,32 +17,20 @@ class QuantumGUI(QWidget):
         self.initUI()
 
     def initUI(self):
-        layout = createProgramGUI()
+        layout = QVBoxLayout()
+        add_program_button = QPushButton("Add program")
+        add_program_button.clicked.connect(self.addProgram)
+        layout.addWidget(add_program_button)
+        calculate_button = QPushButton("Calculate")
+        calculate_button.clicked.connect(self.processProgram)
+        layout.addWidget(calculate_button)
         self.setLayout(layout)
 
-        # self.label = QLabel("输入量子程序:")
-        # layout.addWidget(self.label)
-
-        # self.textEdit = QTextEdit()
-        # layout.addWidget(self.textEdit)
-
-        # self.processButton = QPushButton("解析程序")
-        # self.processButton.clicked.connect(self.processProgram)
-        # layout.addWidget(self.processButton)
-
-        # self.resultLabel = QLabel("解析结果:")
-        # layout.addWidget(self.resultLabel)
-
-        # self.resultText = QTextEdit()
-        # self.resultText.setReadOnly(True)
-        # layout.addWidget(self.resultText)
-
-        # self.setLayout(layout)
-        # self.setWindowTitle("量子程序解析器")
-
-    def addStatement(self):
-        pass        
-
+    def addProgram(self):
+        self.mainProgram = programContainer()
+        gui = createProgramGUI(self.mainProgram)
+        self.newgui = gui
+        gui.show()
 
     def processProgram(self):
         # program_text = self.textEdit.toPlainText()
@@ -52,6 +40,6 @@ class QuantumGUI(QWidget):
 if __name__ == "__main__":
     app = QApplication([])
     pc = programContainer()
-    gui = createProgramGUI(pc)
+    gui = QuantumGUI()
     gui.show()
     app.exec()

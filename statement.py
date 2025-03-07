@@ -1,5 +1,5 @@
 import numpy as np
-
+import qutip
 class var:
     def __init__(self, t):
         self.name = t[0]
@@ -42,25 +42,54 @@ def swap_qubits(i, j, n_qubits):
     U[j, i] = 1
     return U
 
+class counter:
+    def __init__(self, bits, n_qubits):
+        self.cnt = 0
+        self.bits = sorted(bits, reverse=True)
+        self.n_qubits = n_qubits
+
+    def get_and_tick(self):
+        res = 0
+        for i in range(len(self.bits)):
+            if (self.cnt >> i) & 1 == 1:
+                res += 2**(self.n_qubits - self.bits[i] - 1)
+        self.cnt += 1
+        return res
+
+    def reset(self):
+        self.cnt = 0
+    
 def expand_operator(U, target_qubits, n_qubits):
     """扩展作用在 target_qubits 上的矩阵 U 到 n_qubits 量子比特的全局矩阵"""
     # step1 swap target_qubits to the first k qubits
     k = len(target_qubits)
-    swap_matrix = np.eye(2**n_qubits)
+    rest = list(range(n_qubits))
     for i in range(k):
-        if target_qubits[i] != i:
-            swap_matrix = np.dot(swap_matrix, swap_qubits(i, target_qubits[i], n_qubits))
+        rest.remove(target_qubits[i])
+    target_counter = counter(target_qubits, n_qubits)
+    rest_counter = counter(rest, n_qubits)
+    swap_matrix = np.zeros((2**n_qubits, 2**n_qubits))
+    for i in range(2**(n_qubits - k)):
+        cur = rest_counter.get_and_tick()
+        target_counter.reset()
+        for j in range(2**k):    
+            swap_matrix[target_counter.get_and_tick() + cur, i*2**k + j] = 1
 
-    U = np.kron(U, np.eye(2**(n_qubits - k)))
+    U = np.kron(np.eye(2**(n_qubits - k)), U)
     # step3 swap back
-    U = U @ swap_matrix.T
+    
+    U =swap_matrix.T @ U @ swap_matrix.T
     return U
 
+def trace_out(U, qubits, n_qubits):
+    qU = qutip.Qobj(U,dims=[2**n_qubits, 2**n_qubits])
+    qubits = sorted(qubits)
+    return np.array(qutip.ptrace(qU, qubits)).reshape(2**qubits, 2**qubits)
     
-class unitaryOperator(quantumOperator):
+class unitaryOperator(quantumOperator):                                                                                                                                        
     def __init__(self, n, unitary_np, tp): # extend to n qubit transformation
         super().__init__(n)
-        self.mat = unitary_np
+        self.mat = expand_operator(unitary_np, tp, n)
     def __str__(self):
         return "U"
         
