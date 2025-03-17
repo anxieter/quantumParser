@@ -84,7 +84,7 @@ def expand_operator(U, target_qubits, n_qubits):
 def trace_out(U, qubits, n_qubits):
     qU = qutip.Qobj(U,dims=[2**n_qubits, 2**n_qubits])
     qubits = sorted(qubits)
-    return np.array(qutip.ptrace(qU, qubits)).reshape(2**qubits, 2**qubits)
+    return np.array(qutip.ptrace(qU, qubits)).reshape(2**qubits, 2**qubits) 
     
 class unitaryOperator(quantumOperator):                                                                                                                                        
     def __init__(self, n, unitary_np, tp): # extend to n qubit transformation

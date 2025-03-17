@@ -1,4 +1,6 @@
-from statement import *
+from parser import lexer
 
-U = [[0.1,0.9],[21,41]]
-print(expand_operator(U, [1],3))
+with open('test.txt') as f:
+    code = f.read()
+    print(lexer.parse_code(code))
+
