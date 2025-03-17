@@ -25,7 +25,7 @@ class location:
 class controlFlowGraph:
     def __init__(self, program: newProgram):
         self.program = program
-        self.n = program.
+        self.n = program.n
         self.locations: List[location] = []
         init_location = location(0)
         self.locations.append(init_location)
