@@ -1,5 +1,21 @@
-q := 0
-U = [[1,2,1],[1,2,1],[1,2,1]]
-M = [[1,2,1],[1,2,1],[1,2,1]]
-if M[q] = 1 then p := 1 else p := 0 fi
-while M[q] = 1 do q := 1 od
+q = 0
+p = 0
+t = 0
+t2 = 0
+X = [[0,1],[1,0]]
+q,p *= X
+H = [[,1],[1,-1]]
+
+P = [[1,0],[0,0]]
+if P[q,t] = 0 then 
+skip
+else
+t2 = 1 
+fi
+while P[r]=0 do
+if P[q,t] = 0 then 
+skip
+else
+t2 = 1 
+fi
+od

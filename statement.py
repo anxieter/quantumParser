@@ -7,13 +7,12 @@ UNITARY_TRANSFORM = 2
 WHILE = 3
 IF = 4
 
-class var:
+class Var:
     def __init__(self, t):
-        self.name = t[0]
-        self.qubits = t[1]
+        self.name = t
     def __str__(self):
-        return f"{self.name}({str(self.qubits)})"
-class statement:
+        return f"{self.name}"
+class Statement:
     def __init__(self, type):
         self.type = type
         pass
@@ -22,24 +21,28 @@ class statement:
         return "skip"
     
 
-class quantumOperator:
-    def __init__(self, n):
+class QuantumOperator:
+    def __init__(self, n, mat):
         self.n = n # number of qubits
-        self.mat = np.eye(2**n)
+        self.mat = mat
 
     def matrix(self):
         return self.mat
 
-class assignmentOperator(quantumOperator):
-    def __init__(self, n, q, indices): # q is 0 for indices (can imporve by composing indices into a single number)
+class AssignmentOperator(QuantumOperator):
+    def __init__(self, n, qid, value): 
+        if value != 0 and value != 1:
+            raise ValueError("AssignmentOperator only accepts 0 or 1")
         super().__init__(n)
-        self.q = q
+        self.qid = qid
         self.mat = np.zeros((2**n, 2**n))
         for i in range(2**n):
-            t = i
-            for j in indices:
-                t = t - i & (1 << j) # set j-th bit to 0
-            self.mat[t][i] = 1
+            # set qid-th qubit to value
+            if value == 0:
+                t = i - (i & (1 << (n - qid - 1)))
+            else:
+                t = i | (1 << (n - qid - 1))
+            self.mat[t, i] = 1
 
 def swap_qubits(i, j, n_qubits):
     U = np.eye(2**n_qubits)
@@ -49,7 +52,7 @@ def swap_qubits(i, j, n_qubits):
     U[j, i] = 1
     return U
 
-class counter:
+class Counter:
     def __init__(self, bits, n_qubits):
         self.cnt = 0
         self.bits = sorted(bits, reverse=True)
@@ -72,8 +75,8 @@ def expand_operator(U, target_qubits, n_qubits):
     rest = list(range(n_qubits))
     for i in range(k):
         rest.remove(target_qubits[i])
-    target_counter = counter(target_qubits, n_qubits)
-    rest_counter = counter(rest, n_qubits)
+    target_counter = Counter(target_qubits, n_qubits)
+    rest_counter = Counter(rest, n_qubits)
     swap_matrix = np.zeros((2**n_qubits, 2**n_qubits))
     for i in range(2**(n_qubits - k)):
         cur = rest_counter.get_and_tick()
@@ -92,22 +95,22 @@ def trace_out(U, qubits, n_qubits):
     qubits = sorted(qubits)
     return np.array(qutip.ptrace(qU, qubits)).reshape(2**qubits, 2**qubits) 
     
-class unitaryOperator(quantumOperator):                                                                                                                                        
+class UnitaryOperator(QuantumOperator):                                                                                                                                        
     def __init__(self, n, unitary_np, tp): # extend to n qubit transformation
         super().__init__(n)
         self.mat = expand_operator(unitary_np, tp, n)
     def __str__(self):
         return "U"
         
-class measurementOperator(quantumOperator):
-    def __init__(self, n, projector):
+class MeasurementOperator(QuantumOperator):
+    def __init__(self, n, projector, qubit_indices):
         super().__init__(n)
-        self.mat = projector
+        self.mat = expand_operator(projector, qubit_indices, n)
     def __str__(self):
         return "M"
 
 
-class skip(statement):
+class Skip(Statement):
     def __init__(self, n):
         super().__init__(SKIP)
         self.n = n 
@@ -116,12 +119,12 @@ class skip(statement):
     def matrix(self):
         return np.eye(2**self.n)
 
-class assignment(statement): # p = 0
-    def __init__(self, n, p, indices):
+class Assignment(Statement): # p = i
+    def __init__(self, n, p, value):
         super().__init__(ASSIGNMENT)
         self.p = p
-        self.indices = indices
-        self.qo = assignmentOperator(n, p, indices)
+        self.value = value
+        self.qo = AssignmentOperator(n, p, value)
     def __str__(self):
         return f"{self.p} = 0"
     
@@ -129,21 +132,21 @@ class assignment(statement): # p = 0
         # sum of \ket{q}\bra{i} for all i in 2^indices
         return self.qo.matrix()
 
-class unitaryTransform(statement): # p =U[p]
-    def __init__(self, n, p:var,  U):
+class UnitaryTransform(Statement): # p =U[p]
+    def __init__(self, n, vars,  U):
         super().__init__(UNITARY_TRANSFORM)
-        self.p = p
-        self.U = unitaryOperator(n, U, p.qubits)
+        self.vars = vars
+        self.U = UnitaryOperator(n, U, vars)
     def __str__(self):
-        return f"{self.p} = {self.U}{self.p}"
+        return f"{self.vars} = {self.U}{self.vars}"
 
     def matrix(self):
         return self.U.matrix() 
 
-class ifStatement(statement): # if M[q] = 1 then S1 else S2
+class IfStatement(Statement): # if M[q] = 1 then S1 else S2
     def __init__(self, n, M,  q, S1, S2):
         super().__init__(IF)
-        self.mat = measurementOperator(n, M)
+        self.mat = MeasurementOperator(n, M, q)
         self.q = q
         self.S1 = S1
         self.S2 = S2
@@ -153,10 +156,10 @@ class ifStatement(statement): # if M[q] = 1 then S1 else S2
     def matrix(self):
         return self.mat.matrix()
 
-class whileStatement(statement): # while M[q] = 1 do S
+class WhileStatement(Statement): # while M[q] = 1 do S
     def __init__(self, n, M, q, S):
         super().__init__(WHILE)
-        self.mat = measurementOperator(n, M)
+        self.mat = MeasurementOperator(n, M, q)
         self.q = q
         self.S = S
     def __str__(self):
@@ -165,8 +168,3 @@ class whileStatement(statement): # while M[q] = 1 do S
     def matrix(self):
         return self.mat.matrix()
     
-class variable:
-    def __init__(self, name):
-        self.name = name
-    def __str__(self):
-        return self.name

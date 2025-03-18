@@ -11,13 +11,13 @@ class programContainer:
 class newProgram:
     def __init__(self):
         self.n = 0
-        self.statements: List[statement]= []
-        self.variables: List[var] = []
-    def addStatement(self, statement:statement):
+        self.statements: List[Statement]= []
+        self.variables: List[Var] = []
+    def addStatement(self, statement:Statement):
         print("adding statement", statement)
         self.statements.append(statement)
     def addVariable(self, variable):
-        self.variables.append(var(variable))
+        self.variables.append(Var(variable))
     def setN(self, n):
         self.n = n
     def __str__(self):
@@ -211,24 +211,24 @@ class createProgramGUI(QWidget):
             n = self.n
             p = self.program.variables[self.unitary_var_box.currentIndex()]
             U = np.array([int(i) for i in self.unitary_box.toPlainText().split(",")]).reshape((n,n))
-            self.program.addStatement(unitaryTransform(n, p, U))
+            self.program.addStatement(UnitaryTransform(n, p, U))
         if t == "while":
             n = self.n
             M = np.array([int(i) for i in self.while_box.toPlainText().split(",")]).reshape((2**n, 2**n))
             q = self.program.variables[self.while_qubit_box.currentIndex()]
             S = self.while_pc.program
-            self.program.addStatement(whileStatement(n, M, q, S))
+            self.program.addStatement(WhileStatement(n, M, q, S))
         if t == "if":
             n = self.n
             M = np.array([int(i) for i in self.if_box.toPlainText().split(",")]).reshape((2**n, 2**n))
             q = self.program.variables[self.if_qubit_box.currentIndex()]
             S = self.if_pc.program
             E = self.else_pc.program
-            self.program.addStatement(ifStatement(n, M, q, S, E))
+            self.program.addStatement(IfStatement(n, M, q, S, E))
         if t == "assignment":
             n = self.n
             p = self.program.variables[self.assignment_box.currentIndex()]
-            self.program.addStatement(assignment(n, p, U))
+            self.program.addStatement(Assignment(n, p, U))
             
         self.add_statement_window.close()
     

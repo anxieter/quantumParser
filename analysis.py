@@ -1,4 +1,4 @@
-from newProgram import *
+from program import *
 from typing import List
 
 # define enum for different types of statements
@@ -23,7 +23,7 @@ class location:
         self.nexts.append(line(next_loc.id, statement))
 
 class controlFlowGraph:
-    def __init__(self, program: newProgram):
+    def __init__(self, program: Program):
         self.program = program
         self.n = program.n
         self.locations: List[location] = []
@@ -33,13 +33,16 @@ class controlFlowGraph:
         self.generate(program, 0)
 
     def generate(
-        self, program: newProgram, start_id: int
+        self, program: Program, start_id: int
     ) -> location:  # return the ending location
         # init
         id = start_id
         id += 1
         last_location = self.locations[start_id]
+        n = self.n
         for statement in program.statements:
+            if statement.type == ASSIGNMENT:
+                
             if statement.type == UNITARY_TRANSFORM:
                 # create a new location
                 new_location = location(id)
@@ -58,7 +61,7 @@ class controlFlowGraph:
                 if_location.add_parent(last_location, statement)
                 else_location.add_parent(last_location, statement)
                 exit_location = location(id)
-                exit_location.add_parent(exit1, skip(n))
+                exit_location.add_parent(exit1, Skip(n))
                 exit_location.add_parent(exit2, statement)
                 last_location.add_next(if_location, statement)
                 last_location.add_next(else_location, statement)
@@ -72,7 +75,7 @@ class controlFlowGraph:
                 
 
 class analyser:
-    def __init__(self, n, program: newProgram, type=SUBSPACE, sig=None):
+    def __init__(self, n, program: Program, type=SUBSPACE, sig=None):
         self.n = n
         self.program = program
         self.type = type

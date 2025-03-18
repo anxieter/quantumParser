@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'ASSIGN COMMA DO ELSE EQUAL FI ID IF LBRACKET NUMBER OD RBRACKET SKIP THEN WHILEstatements : statements statement\n                  | statementstatement : SKIPstatement : ID ASSIGN NUMBERstatement : ID EQUAL matrixstatement : ID EQUAL ID LBRACKET ID RBRACKETmatrix : LBRACKET rowlist RBRACKETrowlist : rowlist COMMA rowrowlist : rowrow : LBRACKET numberlist RBRACKETnumberlist : NUMBER\n                 | numberlist COMMA NUMBERstatement : IF ID LBRACKET ID RBRACKET EQUAL NUMBER THEN statement ELSE statement FIstatement : WHILE ID LBRACKET ID RBRACKET EQUAL NUMBER DO statement OD'
+_lr_signature = 'COMMA DO ELSE EQUAL FI ID IF LBRACKET MULTIEQUAL NUMBER OD RBRACKET SKIP THEN WHILESTATEMENTS : STATEMENTS STATEMENT\n                  | STATEMENTSTATEMENT : SKIPSTATEMENT : ID EQUAL NUMBERSTATEMENT : ID EQUAL MATRIXIDS : ID\n           | IDS COMMA IDSTATEMENT : IDS MULTIEQUAL ID MATRIX : LBRACKET ROWLIST RBRACKETROWLIST : ROWLIST COMMA ROWROWLIST : ROWROW : LBRACKET NUMBERLIST RBRACKETNUMBERLIST : NUMBER\n                 | NUMBERLIST COMMA NUMBERSTATEMENT : IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENT ELSE STATEMENT FISTATEMENT : WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENT OD'
     
-_lr_action_items = {'SKIP':([0,1,2,3,7,12,14,27,31,40,41,44,45,47,],[3,3,-2,-3,-1,-4,-5,-7,-6,3,3,3,-14,-13,]),'ID':([0,1,2,3,5,6,7,9,12,14,16,17,18,27,31,40,41,44,45,47,],[4,4,-2,-3,10,11,-1,13,-4,-5,22,23,24,-7,-6,4,4,4,-14,-13,]),'IF':([0,1,2,3,7,12,14,27,31,40,41,44,45,47,],[5,5,-2,-3,-1,-4,-5,-7,-6,5,5,5,-14,-13,]),'WHILE':([0,1,2,3,7,12,14,27,31,40,41,44,45,47,],[6,6,-2,-3,-1,-4,-5,-7,-6,6,6,6,-14,-13,]),'$end':([1,2,3,7,12,14,27,31,45,47,],[0,-2,-3,-1,-4,-5,-7,-6,-14,-13,]),'ELSE':([3,12,14,27,31,42,45,47,],[-3,-4,-5,-7,-6,44,-14,-13,]),'OD':([3,12,14,27,31,43,45,47,],[-3,-4,-5,-7,-6,45,-14,-13,]),'FI':([3,12,14,27,31,45,46,47,],[-3,-4,-5,-7,-6,-14,47,-13,]),'ASSIGN':([4,],[8,]),'EQUAL':([4,29,30,],[9,35,36,]),'NUMBER':([8,19,33,35,36,],[12,26,37,38,39,]),'LBRACKET':([9,10,11,13,15,28,],[15,16,17,18,19,19,]),'RBRACKET':([20,21,22,23,24,25,26,32,34,37,],[27,-9,29,30,31,32,-11,-10,-8,-12,]),'COMMA':([20,21,25,26,32,34,37,],[28,-9,33,-11,-10,-8,-12,]),'THEN':([38,],[40,]),'DO':([39,],[41,]),}
+_lr_action_items = {'SKIP':([0,1,2,3,8,14,15,17,29,41,42,45,46,48,],[3,3,-2,-3,-1,-4,-5,-8,-9,3,3,3,-16,-15,]),'ID':([0,1,2,3,6,7,8,10,11,14,15,17,19,20,29,41,42,45,46,48,],[4,4,-2,-3,12,13,-1,17,18,-4,-5,-8,24,24,-9,4,4,4,-16,-15,]),'IF':([0,1,2,3,8,14,15,17,29,41,42,45,46,48,],[6,6,-2,-3,-1,-4,-5,-8,-9,6,6,6,-16,-15,]),'WHILE':([0,1,2,3,8,14,15,17,29,41,42,45,46,48,],[7,7,-2,-3,-1,-4,-5,-8,-9,7,7,7,-16,-15,]),'$end':([1,2,3,8,14,15,17,29,46,48,],[0,-2,-3,-1,-4,-5,-8,-9,-16,-15,]),'ELSE':([3,14,15,17,29,43,46,48,],[-3,-4,-5,-8,-9,45,-16,-15,]),'OD':([3,14,15,17,29,44,46,48,],[-3,-4,-5,-8,-9,46,-16,-15,]),'FI':([3,14,15,17,29,46,47,48,],[-3,-4,-5,-8,-9,-16,48,-15,]),'EQUAL':([4,31,32,],[9,36,37,]),'MULTIEQUAL':([4,5,18,],[-6,10,-7,]),'COMMA':([4,5,18,22,23,24,25,26,27,28,33,35,38,],[-6,11,-7,30,-11,-6,11,11,34,-13,-12,-10,-14,]),'NUMBER':([9,21,34,36,37,],[14,28,38,39,40,]),'LBRACKET':([9,12,13,16,30,],[16,19,20,21,21,]),'RBRACKET':([18,22,23,24,25,26,27,28,33,35,38,],[-7,29,-11,-6,31,32,33,-13,-12,-10,-14,]),'THEN':([39,],[41,]),'DO':([40,],[42,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'statements':([0,],[1,]),'statement':([0,1,40,41,44,],[2,7,42,43,46,]),'matrix':([9,],[14,]),'rowlist':([15,],[20,]),'row':([15,28,],[21,34,]),'numberlist':([19,],[25,]),}
+_lr_goto_items = {'STATEMENTS':([0,],[1,]),'STATEMENT':([0,1,41,42,45,],[2,8,43,44,47,]),'IDS':([0,1,19,20,41,42,45,],[5,5,25,26,5,5,5,]),'MATRIX':([9,],[15,]),'ROWLIST':([16,],[22,]),'ROW':([16,30,],[23,35,]),'NUMBERLIST':([21,],[27,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -26,19 +26,21 @@ for _k, _v in _lr_goto_items.items():
        _lr_goto[_x][_k] = _y
 del _lr_goto_items
 _lr_productions = [
-  ("S' -> statements","S'",1,None,None,None),
-  ('statements -> statements statement','statements',2,'p_statements','lexer.py',73),
-  ('statements -> statement','statements',1,'p_statements','lexer.py',74),
-  ('statement -> SKIP','statement',1,'p_statement_skip','lexer.py',81),
-  ('statement -> ID ASSIGN NUMBER','statement',3,'p_statement_assign','lexer.py',85),
-  ('statement -> ID EQUAL matrix','statement',3,'p_statement_mat_assign','lexer.py',89),
-  ('statement -> ID EQUAL ID LBRACKET ID RBRACKET','statement',6,'p_statement_unitary','lexer.py',94),
-  ('matrix -> LBRACKET rowlist RBRACKET','matrix',3,'p_matrix','lexer.py',98),
-  ('rowlist -> rowlist COMMA row','rowlist',3,'p_rowlist_multiple','lexer.py',102),
-  ('rowlist -> row','rowlist',1,'p_rowlist_single','lexer.py',106),
-  ('row -> LBRACKET numberlist RBRACKET','row',3,'p_row','lexer.py',110),
-  ('numberlist -> NUMBER','numberlist',1,'p_numberlist','lexer.py',114),
-  ('numberlist -> numberlist COMMA NUMBER','numberlist',3,'p_numberlist','lexer.py',115),
-  ('statement -> IF ID LBRACKET ID RBRACKET EQUAL NUMBER THEN statement ELSE statement FI','statement',12,'p_statement_if','lexer.py',122),
-  ('statement -> WHILE ID LBRACKET ID RBRACKET EQUAL NUMBER DO statement OD','statement',10,'p_statement_while','lexer.py',125),
+  ("S' -> STATEMENTS","S'",1,None,None,None),
+  ('STATEMENTS -> STATEMENTS STATEMENT','STATEMENTS',2,'p_statements','lexer.py',73),
+  ('STATEMENTS -> STATEMENT','STATEMENTS',1,'p_statements','lexer.py',74),
+  ('STATEMENT -> SKIP','STATEMENT',1,'p_statement_skip','lexer.py',81),
+  ('STATEMENT -> ID EQUAL NUMBER','STATEMENT',3,'p_statement_assign','lexer.py',85),
+  ('STATEMENT -> ID EQUAL MATRIX','STATEMENT',3,'p_statement_mat_assign','lexer.py',89),
+  ('IDS -> ID','IDS',1,'p_multiple_IDs','lexer.py',93),
+  ('IDS -> IDS COMMA ID','IDS',3,'p_multiple_IDs','lexer.py',94),
+  ('STATEMENT -> IDS MULTIEQUAL ID','STATEMENT',3,'p_statement_unitary','lexer.py',101),
+  ('MATRIX -> LBRACKET ROWLIST RBRACKET','MATRIX',3,'p_MATRIX','lexer.py',105),
+  ('ROWLIST -> ROWLIST COMMA ROW','ROWLIST',3,'p_ROWLIST_multiple','lexer.py',109),
+  ('ROWLIST -> ROW','ROWLIST',1,'p_ROWLIST_single','lexer.py',113),
+  ('ROW -> LBRACKET NUMBERLIST RBRACKET','ROW',3,'p_ROW','lexer.py',117),
+  ('NUMBERLIST -> NUMBER','NUMBERLIST',1,'p_NUMBERLIST','lexer.py',121),
+  ('NUMBERLIST -> NUMBERLIST COMMA NUMBER','NUMBERLIST',3,'p_NUMBERLIST','lexer.py',122),
+  ('STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENT ELSE STATEMENT FI','STATEMENT',12,'p_statement_if','lexer.py',129),
+  ('STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENT OD','STATEMENT',10,'p_statement_while','lexer.py',132),
 ]
