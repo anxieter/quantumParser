@@ -6,9 +6,9 @@ SUBSPACE = 1
 SUBSPACE_WITH_SIG = 2
 
 class line:
-    def __init__(self, id, statement):
+    def __init__(self, id, matrix):
         self.id = id
-        self.statement = statement
+        self.matrix = matrix
 
 class location:
     def __init__(self, id):
@@ -16,8 +16,8 @@ class location:
         self.parents = []
         self.nexts = []
 
-    def add_parent(self, parent_loc, statement):
-        self.parents.append(line(parent_loc.id, statement))
+    def add_parent(self, parent_loc, matrix):
+        self.parents.append(line(parent_loc.id, matrix))
 
     def add_next(self, next_loc, statement):
         self.nexts.append(line(next_loc.id, statement))
@@ -42,12 +42,17 @@ class controlFlowGraph:
         n = self.n
         for statement in program.statements:
             if statement.type == ASSIGNMENT:
-                
+                new_location = location(id)
+                new_location.add_parent(last_location, statement.matrix())
+                last_location.add_next(new_location, statement.matrix())
+                last_location = new_location
+                id += 1
+                continue
             if statement.type == UNITARY_TRANSFORM:
                 # create a new location
                 new_location = location(id)
-                new_location.add_parent(last_location, statement)
-                last_location.add_next(new_location, statement)
+                new_location.add_parent(last_location, statement.matrix())
+                last_location.add_next(new_location, statement.matrix())
                 last_location = new_location
                 id += 1
                 continue
@@ -58,21 +63,22 @@ class controlFlowGraph:
                 else_location = location(id)
                 id += 1
                 exit2 = self.generate(statement.S2, id)
-                if_location.add_parent(last_location, statement)
-                else_location.add_parent(last_location, statement)
+                if_location.add_parent(last_location, statement.matrix())
+                else_location.add_parent(last_location, statement.matrix())
                 exit_location = location(id)
                 exit_location.add_parent(exit1, Skip(n))
-                exit_location.add_parent(exit2, statement)
-                last_location.add_next(if_location, statement)
-                last_location.add_next(else_location, statement)
+                exit_location.add_parent(exit2, statement.S1.matrix())
+                last_location.add_next(if_location, statement.S2.matrix())
+                last_location.add_next(else_location, statement.matrix())
                 last_location = exit_location
                 id += 1
                 continue
             if statement.type == WHILE:
                 loop_location = location(id)
-                
-                
-                
+                id += 1
+                loop_location.add_parent(last_location, statement.matrix())
+                exit1 = self.generate(statement.S, id) 
+                                
 
 class analyser:
     def __init__(self, n, program: Program, type=SUBSPACE, sig=None):

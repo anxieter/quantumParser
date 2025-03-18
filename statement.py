@@ -13,12 +13,16 @@ class Var:
     def __str__(self):
         return f"{self.name}"
 class Statement:
-    def __init__(self, type):
+    def __init__(self, type, n):
         self.type = type
+        self.n = n
         pass
 
     def __str__(self):
         return "skip"
+    
+    def matrix(self):
+        return np.zeros(self.n, self.n)
     
 
 class QuantumOperator:
