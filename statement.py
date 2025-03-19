@@ -7,31 +7,44 @@ UNITARY_TRANSFORM = 2
 WHILE = 3
 IF = 4
 
+UNITARY = 123
+PROJECTOR = 456
+
+class QOMatrix:
+    def __init__(self, mat, t):
+        self.mat = mat
+        self.type = t
+        # self.shape = mat.shape
+    def __str__(self):
+        return f"{self.mat}"
+
+
+
 class Var:
     def __init__(self, t):
         self.name = t
     def __str__(self):
         return f"{self.name}"
 class Statement:
-    def __init__(self, type, n):
+    def __init__(self, type):
         self.type = type
-        self.n = n
+        self.n = 1
         pass
 
     def __str__(self):
-        return "skip"
+        return "error: not implemented"
     
     def matrix(self):
         return np.zeros(self.n, self.n)
     
 
 class QuantumOperator:
-    def __init__(self, n, mat):
+    def __init__(self, n):
         self.n = n # number of qubits
-        self.mat = mat
+        self.mat = np.zeros((2**n, 2**n))
 
     def matrix(self):
-        return self.mat
+        return self.mat # 0 is for error
 
 class AssignmentOperator(QuantumOperator):
     def __init__(self, n, qid, value): 
@@ -75,6 +88,7 @@ class Counter:
     
 def expand_operator(U, target_qubits, n_qubits):
     # step1 swap target_qubits to the first k qubits
+    print(U, target_qubits, n_qubits)
     k = len(target_qubits)
     rest = list(range(n_qubits))
     for i in range(k):
@@ -112,8 +126,8 @@ class MeasurementOperator(QuantumOperator):
         self.mat = expand_operator(projector, qubit_indices, n)
     def __str__(self):
         return "M"
-
-
+    def othogonal_projector(self):
+        return np.eye(2**self.n) - self.mat
 class Skip(Statement):
     def __init__(self, n):
         super().__init__(SKIP)
@@ -121,7 +135,7 @@ class Skip(Statement):
     def __str__(self):
         return "skip"
     def matrix(self):
-        return np.eye(2**self.n)
+        return QOMatrix(np.eye(2**self.n), UNITARY)
 
 class Assignment(Statement): # p = i
     def __init__(self, n, p, value):
@@ -130,11 +144,11 @@ class Assignment(Statement): # p = i
         self.value = value
         self.qo = AssignmentOperator(n, p, value)
     def __str__(self):
-        return f"{self.p} = 0"
+        return f"q{self.p} = 0"
     
     def matrix(self):
         # sum of \ket{q}\bra{i} for all i in 2^indices
-        return self.qo.matrix()
+        return QOMatrix(self.qo.matrix(), UNITARY)
 
 class UnitaryTransform(Statement): # p =U[p]
     def __init__(self, n, vars,  U):
@@ -142,33 +156,58 @@ class UnitaryTransform(Statement): # p =U[p]
         self.vars = vars
         self.U = UnitaryOperator(n, U, vars)
     def __str__(self):
-        return f"{self.vars} = {self.U}{self.vars}"
+        return f"q{self.vars} = {self.U}q{self.vars}"
 
     def matrix(self):
-        return self.U.matrix() 
+        return QOMatrix(self.U.matrix(), UNITARY) 
 
-class IfStatement(Statement): # if M[q] = 1 then S1 else S2
-    def __init__(self, n, M,  q, S1, S2):
+class IfStatement(Statement): # if M[q] = value then S1 else S2
+    def __init__(self, n, M,  q, value, S1, S2):
         super().__init__(IF)
         self.mat = MeasurementOperator(n, M, q)
         self.q = q
         self.S1 = S1
         self.S2 = S2
+        if value == 0:
+            self.if_mat = self.mat.othogonal_projector()
+            self.else_mat = self.mat.matrix()
+        else:
+            self.if_mat= self.mat.matrix()
+            self.else_mat= self.mat.othogonal_projector()
+        
     def __str__(self):
-        return f"if {self.mat}{self.q} then {self.S1} else {self.S2}"
+        return f"if {self.mat}q{self.q} then {self.S1} else {self.S2}"
 
     def matrix(self):
         return self.mat.matrix()
 
-class WhileStatement(Statement): # while M[q] = 1 do S
-    def __init__(self, n, M, q, S):
+    def if_matrix(self):
+        return QOMatrix(self.if_mat, PROJECTOR)
+
+    def else_matrix(self):
+        return QOMatrix(self.else_mat, PROJECTOR)
+    
+
+class WhileStatement(Statement): # while M[q] = value do S
+    def __init__(self, n, M, q, value, S):
         super().__init__(WHILE)
         self.mat = MeasurementOperator(n, M, q)
         self.q = q
         self.S = S
+        if value == 0:
+            self.continue_mat = self.mat.othogonal_projector()
+            self.exit_mat = self.mat.matrix()
+        else:
+            self.continue_mat = self.mat.matrix()
+            self.exit_mat = self.mat.othogonal_projector()
     def __str__(self):
-        return f"while {self.mat}{self.q} do {self.S}"
+        return f"while {self.mat}q{self.q} do {self.S}"
 
     def matrix(self):
         return self.mat.matrix()
     
+    def continue_matrix(self):
+        return QOMatrix(self.continue_mat, PROJECTOR)
+    
+    def exit_matrix(self):
+        return QOMatrix(self.exit_mat, PROJECTOR)

@@ -32,26 +32,35 @@ class Program:
             measurement = self.matrices[statement[1]]
             qubit_index = [self.variables[var] for var in statement[2]]
             value = float(statement[3])
-            S1 = generateFromLex(statement[4], self.n)
-            S2 = generateFromLex(statement[5], self.n)
-            self.statements.append(IfStatement(self.n, measurement, qubit_index, S1, S2))
+            if value != 0 and value != 1:
+                raise ValueError("If measurement only accepts 0 or 1")
+            S1 = generateFromLex(statement[4], self.n, self)
+            S2 = generateFromLex(statement[5], self.n, self)
+            self.statements.append(IfStatement(self.n, measurement, qubit_index, value, S1, S2))
         elif statement[0] == 'skip':
             self.statements.append(Skip(self.n))
         elif statement[0] == 'while':
             measurement = self.matrices[statement[1]]
             qubit_index = [self.variables[var] for var in statement[2]]
             value = float(statement[3])
-            S1 = generateFromLex(statement[4], self.n)
-            self.statements.append(WhileStatement(self.n, measurement, qubit_index, S1))
+            if value != 0 and value != 1:
+                raise ValueError("While measurement only accepts 0 or 1")
+            S1 = generateFromLex(statement[4], self.n, self)
+            self.statements.append(WhileStatement(self.n, measurement, qubit_index, value, S1))
     def setN(self, n):
         self.n = n
     def __str__(self):
         return "\n".join([str(s) for s in self.statements])
 
 
-def generateFromLex(program_lexed, n):
+def generateFromLex(program_lexed, n, parent_program=None):
     program = Program()
     program.setN(n)
+    if parent_program:
+        for var in parent_program.variables:
+            program.variables[var] = parent_program.variables[var]
+        for mat in parent_program.matrices:
+            program.matrices[mat] = parent_program.matrices[mat]
     for statement in program_lexed:
         program.addStatement(statement)
     return program

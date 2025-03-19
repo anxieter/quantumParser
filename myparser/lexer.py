@@ -4,7 +4,7 @@ import ply.yacc as yacc
 # 词法分析器（Lexer）
 tokens = (
     'SKIP',  'IF', 'THEN', 'ELSE', 'FI', 'WHILE', 'DO', 'OD',
-      'EQUAL', 'LBRACKET', 'RBRACKET', 'NUMBER', 'COMMA','ID','MULTIEQUAL' ,
+      'EQUAL', 'LBRACKET', 'RBRACKET', 'NUMBER', 'COMMA','ID','MULTIEQUAL' ,'COMPLEX'
 )
 
 t_LBRACKET = r'\['
@@ -54,9 +54,15 @@ def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
     return t
 
+def t_COMPLEX(t):
+    r'-?\d+(\.\d+)?[+-]\d+(\.\d+)?j|-?\d+(\.\d+)?j'
+    t.value = complex(t.value)  # 转换为复数类型
+    return t
+
+# 纯实数匹配（防止误识别）
 def t_NUMBER(t):
-    r'\d+'
-    t.value = int(t.value)
+    r'-?\d+(\.\d+)?'
+    t.value = float(t.value)  # 转换为浮点数
     return t
 
 def t_newline(t):
@@ -120,17 +126,19 @@ def p_ROW(p):
 
 def p_NUMBERLIST(p):
     '''NUMBERLIST : NUMBER
-                 | NUMBERLIST COMMA NUMBER'''
+                 | COMPLEX
+                 | NUMBERLIST COMMA NUMBER
+                 | NUMBERLIST COMMA COMPLEX'''
     if len(p) == 2:
         p[0] = [p[1]]
     else:
         p[0] = p[1] + [p[3]]
 
 def p_statement_if(p):
-    '''STATEMENT : IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENT ELSE STATEMENT FI'''
+    '''STATEMENT : IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI'''
     p[0] = ('if',p[2], p[4], p[7], p[9], p[11])
 def p_statement_while(p):
-    'STATEMENT : WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENT OD'
+    'STATEMENT : WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD'
     p[0] = ('while',p[2], p[4], p[7], p[9])
 
 
