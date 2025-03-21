@@ -22,7 +22,10 @@ class Location:
         self.nexts: List[Line] = []
         self.invariant = None
         self.need_widening = False
-        
+    
+    def __str__(self) -> str:
+        return f'{self.id}:{self.invariant}'
+    
     def add_parent(self, parent_loc, matrix, label):
         self.parents.append(Line(parent_loc.id, matrix, label))
 
@@ -53,7 +56,7 @@ class ControlFlowGraph:
         last_location = self.locations[self.id - 1]
         n = self.n
         for statement in program.statements:
-            print(statement)
+            # print(statement)
             if statement.type == SKIP:
                 new_location = self.create_location()
                 last_location.add_next(new_location, Skip(n).matrix(), "skip")
@@ -148,12 +151,13 @@ class Analyser:
             need_update.append(cfg.locations[next.id])
         while need_update:
             cur = need_update.pop()
+            # print("current:", str(cur))
             if self.update_from_parents(cur):
                 for next in cur.nexts:
                     need_update.append(cfg.locations[next.id])
         print("done")
-        for loc in cfg.locations:
-            print('location', loc.id,'; invariant:', loc.invariant)
+        # for loc in cfg.locations:
+            # print('location', loc.id,'; invariant:', loc.invariant)
     
     
     def update_invariant_with_matrix(self, invariant, matrix: QOMatrix):
@@ -172,7 +176,7 @@ class Analyser:
             matrix = parent.matrix
             if parent_node.invariant is not None:
                 update_par_inv = self.update_invariant_with_matrix(parent_node.invariant, matrix)
-                if Q is not None:
+                if Q is None:
                     Q = update_par_inv
                 else:
                     old_Q = Q

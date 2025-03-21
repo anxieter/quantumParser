@@ -1,6 +1,8 @@
-from parser import lexer
+from projector import *
 
-with open('test.txt') as f:
-    code = f.read()
-    print(lexer.parse_code(code))
-
+H = np.array([[0.5, 0.5], [0.5, 0.5]])
+P = np.array([[1, 0], [0, 0]])
+# print(,supp(H))
+print('join:',join(H, P))
+print('intersect:',intersect(H, P))
+print('sasaki:',sasaki_projection(P, H))

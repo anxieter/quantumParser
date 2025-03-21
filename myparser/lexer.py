@@ -54,8 +54,8 @@ def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
     return t
 
-def t_COMPLEX(t):
-    r'-?\d+(\.\d+)?[+-]\d+(\.\d+)?j|-?\d+(\.\d+)?j'
+def t_COMPLEX(t):# a+bj
+    r'-?\d+(\.\d+)?[+-]\d+(\.\d+)?j'
     t.value = complex(t.value)  # 转换为复数类型
     return t
 
