@@ -88,7 +88,6 @@ class Counter:
     
 def expand_operator(U, target_qubits, n_qubits):
     # step1 swap target_qubits to the first k qubits
-    print(U, target_qubits, n_qubits)
     k = len(target_qubits)
     rest = list(range(n_qubits))
     for i in range(k):
@@ -109,9 +108,9 @@ def expand_operator(U, target_qubits, n_qubits):
     return U
 
 def trace_out(U, qubits, n_qubits):
-    qU = qutip.Qobj(U,dims=[2**n_qubits, 2**n_qubits])
+    qU = qutip.Qobj(U,dims=[[2]*n_qubits, [2]*n_qubits])
     qubits = sorted(qubits)
-    return np.array(qutip.ptrace(qU, qubits)).reshape(2**qubits, 2**qubits) 
+    return qutip.ptrace(qU, qubits).data_as('ndarray')
     
 class UnitaryOperator(QuantumOperator):                                                                                                                                        
     def __init__(self, n, unitary_np, tp): # extend to n qubit transformation
@@ -142,12 +141,14 @@ class Assignment(Statement): # p = i
         super().__init__(ASSIGNMENT)
         self.p = p
         self.value = value
-        self.qo = AssignmentOperator(n, p, value)
+        
+        
     def __str__(self):
-        return f"q{self.p} = 0"
+        return f"q{self.p} = {self.value}"
     
     def matrix(self):
         # sum of \ket{q}\bra{i} for all i in 2^indices
+        raise("Error: Assignment can't be taken as a matrix")
         return QOMatrix(self.qo.matrix(), UNITARY)
 
 class UnitaryTransform(Statement): # p =U[p]

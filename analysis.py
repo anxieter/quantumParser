@@ -22,7 +22,6 @@ class Location:
         self.nexts: List[Line] = []
         self.invariant = None
         self.need_widening = False
-    
     def __str__(self) -> str:
         return f'{self.id}:{self.invariant}'
     
@@ -35,6 +34,9 @@ class Location:
     def set_widen(self):
         self.need_widening = True
 
+    def set_assigned_id(self, qid, value):
+        self.qid = qid
+        self.value = value
    
         
 class ControlFlowGraph:
@@ -47,7 +49,7 @@ class ControlFlowGraph:
         self.locations.append(init_location)
         self.init_location = init_location
         self.id = 1
-        self.generate(program)
+        self.last_location = self.generate(program)
 
     def generate(
         self, program: Program
@@ -65,8 +67,9 @@ class ControlFlowGraph:
                 continue
             if statement.type == ASSIGNMENT:
                 new_location = self.create_location()
-                new_location.add_parent(last_location, statement.matrix(), str(statement))
-                last_location.add_next(new_location, statement.matrix(), str(statement))
+                last_location.set_assigned_id(statement.p, statement.value)
+                new_location.add_parent(last_location, None, str(statement))
+                last_location.add_next(new_location, None, str(statement))
                 last_location = new_location
                 continue
             if statement.type == UNITARY_TRANSFORM:
@@ -168,6 +171,28 @@ class Analyser:
         else:
             raise ValueError("unknown matrix type")
 
+    def update_invariant_for_assignment(self, invariant, qid, value):
+        print(invariant)
+        egvecs = supp_vecs(invariant)
+        target_vecs = None
+        ket_0 = np.array([1, 0], dtype=np.complex128)
+        ket_1 = np.array([0, 1], dtype=np.complex128)
+        if value == 0:
+            U_0 = expand_operator(np.outer(ket_0, ket_0), [qid], self.n)
+            U_1 = expand_operator(np.outer(ket_0, ket_1), [qid], self.n)
+        else:
+            U_0 = expand_operator(np.outer(ket_1, ket_0), [qid], self.n)
+            U_1 = expand_operator(np.outer(ket_1, ket_1), [qid], self.n)
+        for vec in egvecs:
+            rho = np.outer(vec, vec)
+            rho = U_0 @ rho @ U_0.conj().T + U_1 @ rho @ U_1.conj().T
+            if target_vecs is None:
+                target_vecs = supp_vecs(rho)
+            else:
+                target_vecs = np.vstack((target_vecs, supp_vecs(rho)))
+        
+        return supp(target_vecs.T)
+    
     def update_from_parents(self, loc: Location):
         Q = None
         old_inv = loc.invariant
@@ -175,7 +200,10 @@ class Analyser:
             parent_node = self.cfg.locations[parent.id]
             matrix = parent.matrix
             if parent_node.invariant is not None:
-                update_par_inv = self.update_invariant_with_matrix(parent_node.invariant, matrix)
+                if matrix is not None:
+                    update_par_inv = self.update_invariant_with_matrix(parent_node.invariant, matrix)
+                else: # Assignment 
+                    update_par_inv = self.update_invariant_for_assignment(parent_node.invariant, parent_node.qid, parent_node.value)
                 if Q is None:
                     Q = update_par_inv
                 else:

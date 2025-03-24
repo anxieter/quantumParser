@@ -16,15 +16,18 @@ def remove_small_values(P):
 
 def supp(R):
     # return the support space of R
-    egvals, egvecs = np.linalg.eig(R)
-    tol = 1e-10
-    mask = egvals > tol
-    projector = np.zeros(R.shape, dtype=np.complex128)
-    egvecs = np.array(egvecs, dtype=np.complex128)
-    for i in range(len(mask)):
-        if mask[i]:
-            projector += np.outer(egvecs[:, i], egvecs[:, i])
-    return remove_small_values(projector)
+    U, S, Vh = np.linalg.svd(R)
+    rank = np.linalg.matrix_rank(R)
+    U_basis = U[:, :rank]
+    projector = U_basis @ U_basis.conj().T
+    return np.array(projector, dtype=np.complex128)
+        
+
+def supp_vecs(R):
+    U, S, Vh = np.linalg.svd(R)
+    rank = np.linalg.matrix_rank(R)
+    U_basis = U[:, :rank]
+    return U_basis.T
 
 def join(P, Q):
     # print(P.shape, Q.shape)

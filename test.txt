@@ -1,18 +1,3 @@
 q = 0
-t = 0
+t2 = 1
 r = 0
-X = [[0,1],[1,0]]
-r *= X
-P = [[1+0.5j,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
-if P[q,t] = 0 then 
-skip
-else
-t2 = 1 
-fi
-while X[r]=0 do
-if P[q,t] = 0 then 
-skip
-else
-t2 = 1 
-fi
-od
