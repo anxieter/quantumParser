@@ -17,6 +17,7 @@ def remove_small_values(P):
 def supp(R):
     # return the support space of R
     U, S, Vh = np.linalg.svd(R)
+    print(R)
     rank = np.linalg.matrix_rank(R)
     U_basis = U[:, :rank]
     projector = U_basis @ U_basis.conj().T

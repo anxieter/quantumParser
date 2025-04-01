@@ -81,36 +81,44 @@ class Counter:
             if (self.cnt >> i) & 1 == 1:
                 res += 2**(self.n_qubits - self.bits[i] - 1)
         self.cnt += 1
-        return res
+        return res % (2**self.n_qubits)
 
+    def get_index(self, i):
+        res = 0
+        k = len(self.bits)
+        for j in range(k):
+            if (i >> (self.n_qubits - self.bits[j] - 1)) & 1 == 1:
+                res += 2**j
+        return res % (2**self.n_qubits)
+    
+    def get_rest(self, i):
+        k = len(self.bits)
+        for j in range(k):
+            i = i - (i & (1 << (self.n_qubits - self.bits[j] - 1)))
+        return i % (2**self.n_qubits)
+    
     def reset(self):
         self.cnt = 0
     
 def expand_operator(U, target_qubits, n_qubits):
-    # step1 swap target_qubits to the first k qubits
     k = len(target_qubits)
-    rest = list(range(n_qubits))
-    for i in range(k):
-        rest.remove(target_qubits[i])
     target_counter = Counter(target_qubits, n_qubits)
-    rest_counter = Counter(rest, n_qubits)
-    swap_matrix = np.zeros((2**n_qubits, 2**n_qubits))
-    for i in range(2**(n_qubits - k)):
-        cur = rest_counter.get_and_tick()
-        target_counter.reset()
-        for j in range(2**k):    
-            swap_matrix[target_counter.get_and_tick() + cur, i*2**k + j] = 1
 
-    U = np.kron(np.eye(2**(n_qubits - k)), U)
-    # step3 swap back
-    
-    U =swap_matrix.T @ U @ swap_matrix.T
-    return U
+    init_indices = []
+    for i in range(2**k):
+        init_indices.append(target_counter.get_and_tick())
+    init_indices = np.array(init_indices, dtype=np.int64)
+    res = np.zeros((2**n_qubits, 2**n_qubits), dtype=np.complex128)
+    for i in range(2**n_qubits):
+        cur = target_counter.get_rest(i)
+        res[i ,init_indices + cur] = U[target_counter.get_index(i)]
+        # print(np.array(res, dtype=np.float64))
+    return res
 
 def trace_out(U, qubits, n_qubits):
     qU = qutip.Qobj(U,dims=[[2]*n_qubits, [2]*n_qubits])
     qubits = sorted(qubits)
-    return qutip.ptrace(qU, qubits).data_as('ndarray')
+    return qutip.ptrace(qU, qubits).data_as('ndarray') 
     
 class UnitaryOperator(QuantumOperator):                                                                                                                                        
     def __init__(self, n, unitary_np, tp): # extend to n qubit transformation

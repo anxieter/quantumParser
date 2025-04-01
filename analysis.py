@@ -154,6 +154,7 @@ class Analyser:
             need_update.append(cfg.locations[next.id])
         while need_update:
             cur = need_update.pop()
+            print("updating", cur.id)
             # print("current:", str(cur))
             if self.update_from_parents(cur):
                 for next in cur.nexts:
@@ -172,7 +173,8 @@ class Analyser:
             raise ValueError("unknown matrix type")
 
     def update_invariant_for_assignment(self, invariant, qid, value):
-        print(invariant)
+        print(np.array(invariant, dtype=np.float64))
+        print("set qid", qid, "to value", value)
         egvecs = supp_vecs(invariant)
         target_vecs = None
         ket_0 = np.array([1, 0], dtype=np.complex128)
