@@ -9,6 +9,7 @@ class Program:
         self.variables = {}
         self.matrices = {}
         self.cnt = 0
+        
     def addStatement(self, statement):
         print("adding statement", statement)
         if statement[0] == 'assign':
@@ -47,6 +48,10 @@ class Program:
                 raise ValueError("While measurement only accepts 0 or 1")
             S1 = generateFromLex(statement[4], self.n, self)
             self.statements.append(WhileStatement(self.n, measurement, qubit_index, value, S1))
+        elif statement[0] == 'print':
+            ids = [self.variables[var] for var in statement[1]]
+            self.statements[len(self.statements)-1].set_print(ids)
+            
     def setN(self, n):
         self.n = n
     def __str__(self):

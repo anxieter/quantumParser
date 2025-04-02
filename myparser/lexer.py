@@ -4,7 +4,7 @@ import ply.yacc as yacc
 # 词法分析器（Lexer）
 tokens = (
     'SKIP',  'IF', 'THEN', 'ELSE', 'FI', 'WHILE', 'DO', 'OD',
-      'EQUAL', 'LBRACKET', 'RBRACKET', 'NUMBER', 'COMMA','ID','MULTIEQUAL' ,'COMPLEX'
+      'EQUAL', 'LBRACKET', 'RBRACKET', 'NUMBER', 'COMMA','ID','MULTIEQUAL' ,'COMPLEX', 'PRINT'
 )
 
 t_LBRACKET = r'\['
@@ -12,6 +12,13 @@ t_RBRACKET = r'\]'
 t_COMMA = r','
 t_EQUAL = r'='
 t_ignore = ' \t\n'
+
+
+
+def t_PRINT(t):
+    r'print'
+    return t
+
 
 def t_SKIP(t):
     r'skip'
@@ -141,7 +148,9 @@ def p_statement_while(p):
     'STATEMENT : WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD'
     p[0] = ('while',p[2], p[4], p[7], p[9])
 
-
+def p_print(p):
+    'STATEMENT : PRINT LBRACKET IDS RBRACKET'
+    p[0] = ('print', p[3])
 
 def p_error(p):
     print(p)

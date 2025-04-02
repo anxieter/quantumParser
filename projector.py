@@ -17,7 +17,7 @@ def remove_small_values(P):
 def supp(R):
     # return the support space of R
     U, S, Vh = np.linalg.svd(R)
-    print(R)
+    # print(R)
     rank = np.linalg.matrix_rank(R)
     U_basis = U[:, :rank]
     projector = U_basis @ U_basis.conj().T
@@ -33,17 +33,15 @@ def supp_vecs(R):
 def join(P, Q):
     # print(P.shape, Q.shape)
     M = np.hstack((P, Q))
-    # print(M)
     q, r = np.linalg.qr(M)
     res = np.zeros(P.shape, dtype=np.complex128)
     q = np.array(q, dtype=np.complex128)
     tol = 1e-10
     # 得到 r 的非零行数
     r_nz = np.sum(np.abs(r) > tol, axis=1)
-    # print(r_nz)
-    cnt = np.sum(r_nz > 0)
-    for col in range(cnt):
-       res += np.outer(q[:, col], q[:, col])
+    for col in range(P.shape[0]):
+        if r_nz[col] != 0:
+            res += np.outer(q[:, col], q[:, col])
     return remove_small_values(res)
 
 def intersect(P, Q):

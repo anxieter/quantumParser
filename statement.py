@@ -6,6 +6,7 @@ ASSIGNMENT = 1
 UNITARY_TRANSFORM = 2
 WHILE = 3
 IF = 4
+PRINT = 5
 
 UNITARY = 123
 PROJECTOR = 456
@@ -29,8 +30,13 @@ class Statement:
     def __init__(self, type):
         self.type = type
         self.n = 1
+        self.need_print = False
         pass
-
+    
+    def set_print(self, ids):
+        self.need_print = True
+        self.ids = ids
+        
     def __str__(self):
         return "error: not implemented"
     
@@ -143,7 +149,10 @@ class Skip(Statement):
         return "skip"
     def matrix(self):
         return QOMatrix(np.eye(2**self.n), UNITARY)
-
+    def print(self):
+        print("skip")
+    
+    
 class Assignment(Statement): # p = i
     def __init__(self, n, p, value):
         super().__init__(ASSIGNMENT)
@@ -158,6 +167,7 @@ class Assignment(Statement): # p = i
         # sum of \ket{q}\bra{i} for all i in 2^indices
         raise("Error: Assignment can't be taken as a matrix")
         return QOMatrix(self.qo.matrix(), UNITARY)
+        
 
 class UnitaryTransform(Statement): # p =U[p]
     def __init__(self, n, vars,  U):
@@ -220,3 +230,6 @@ class WhileStatement(Statement): # while M[q] = value do S
     
     def exit_matrix(self):
         return QOMatrix(self.exit_mat, PROJECTOR)
+    
+    
+    
