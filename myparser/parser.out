@@ -21,6 +21,7 @@ Rule 15    NUMBERLIST -> NUMBERLIST COMMA NUMBER
 Rule 16    NUMBERLIST -> NUMBERLIST COMMA COMPLEX
 Rule 17    STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
 Rule 18    STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
+Rule 19    STATEMENT -> PRINT LBRACKET IDS RBRACKET
 
 Terminals, with rules where they appear
 
@@ -32,11 +33,12 @@ EQUAL                : 4 5 17 18
 FI                   : 17
 ID                   : 4 5 6 7 8 17 18
 IF                   : 17
-LBRACKET             : 9 12 17 18
+LBRACKET             : 9 12 17 18 19
 MULTIEQUAL           : 8
 NUMBER               : 4 13 15 17 18
 OD                   : 18
-RBRACKET             : 9 12 17 18
+PRINT                : 19
+RBRACKET             : 9 12 17 18 19
 SKIP                 : 3
 THEN                 : 17
 WHILE                : 18
@@ -44,7 +46,7 @@ error                :
 
 Nonterminals, with rules where they appear
 
-IDS                  : 7 8 17 18
+IDS                  : 7 8 17 18 19
 MATRIX               : 5
 NUMBERLIST           : 12 15 16
 ROW                  : 10 11
@@ -65,6 +67,7 @@ state 0
     (8) STATEMENT -> . IDS MULTIEQUAL ID
     (17) STATEMENT -> . IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
     (18) STATEMENT -> . WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
+    (19) STATEMENT -> . PRINT LBRACKET IDS RBRACKET
     (6) IDS -> . ID
     (7) IDS -> . IDS COMMA ID
 
@@ -72,6 +75,7 @@ state 0
     ID              shift and go to state 4
     IF              shift and go to state 6
     WHILE           shift and go to state 7
+    PRINT           shift and go to state 8
 
     STATEMENTS                     shift and go to state 1
     STATEMENT                      shift and go to state 2
@@ -87,6 +91,7 @@ state 1
     (8) STATEMENT -> . IDS MULTIEQUAL ID
     (17) STATEMENT -> . IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
     (18) STATEMENT -> . WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
+    (19) STATEMENT -> . PRINT LBRACKET IDS RBRACKET
     (6) IDS -> . ID
     (7) IDS -> . IDS COMMA ID
 
@@ -94,8 +99,9 @@ state 1
     ID              shift and go to state 4
     IF              shift and go to state 6
     WHILE           shift and go to state 7
+    PRINT           shift and go to state 8
 
-    STATEMENT                      shift and go to state 8
+    STATEMENT                      shift and go to state 9
     IDS                            shift and go to state 5
 
 state 2
@@ -106,6 +112,7 @@ state 2
     ID              reduce using rule 2 (STATEMENTS -> STATEMENT .)
     IF              reduce using rule 2 (STATEMENTS -> STATEMENT .)
     WHILE           reduce using rule 2 (STATEMENTS -> STATEMENT .)
+    PRINT           reduce using rule 2 (STATEMENTS -> STATEMENT .)
     $end            reduce using rule 2 (STATEMENTS -> STATEMENT .)
     ELSE            reduce using rule 2 (STATEMENTS -> STATEMENT .)
     OD              reduce using rule 2 (STATEMENTS -> STATEMENT .)
@@ -120,6 +127,7 @@ state 3
     ID              reduce using rule 3 (STATEMENT -> SKIP .)
     IF              reduce using rule 3 (STATEMENT -> SKIP .)
     WHILE           reduce using rule 3 (STATEMENT -> SKIP .)
+    PRINT           reduce using rule 3 (STATEMENT -> SKIP .)
     $end            reduce using rule 3 (STATEMENT -> SKIP .)
     ELSE            reduce using rule 3 (STATEMENT -> SKIP .)
     OD              reduce using rule 3 (STATEMENT -> SKIP .)
@@ -132,7 +140,7 @@ state 4
     (5) STATEMENT -> ID . EQUAL MATRIX
     (6) IDS -> ID .
 
-    EQUAL           shift and go to state 9
+    EQUAL           shift and go to state 10
     MULTIEQUAL      reduce using rule 6 (IDS -> ID .)
     COMMA           reduce using rule 6 (IDS -> ID .)
 
@@ -142,25 +150,32 @@ state 5
     (8) STATEMENT -> IDS . MULTIEQUAL ID
     (7) IDS -> IDS . COMMA ID
 
-    MULTIEQUAL      shift and go to state 10
-    COMMA           shift and go to state 11
+    MULTIEQUAL      shift and go to state 11
+    COMMA           shift and go to state 12
 
 
 state 6
 
     (17) STATEMENT -> IF . ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
 
-    ID              shift and go to state 12
+    ID              shift and go to state 13
 
 
 state 7
 
     (18) STATEMENT -> WHILE . ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
 
-    ID              shift and go to state 13
+    ID              shift and go to state 14
 
 
 state 8
+
+    (19) STATEMENT -> PRINT . LBRACKET IDS RBRACKET
+
+    LBRACKET        shift and go to state 15
+
+
+state 9
 
     (1) STATEMENTS -> STATEMENTS STATEMENT .
 
@@ -168,52 +183,63 @@ state 8
     ID              reduce using rule 1 (STATEMENTS -> STATEMENTS STATEMENT .)
     IF              reduce using rule 1 (STATEMENTS -> STATEMENTS STATEMENT .)
     WHILE           reduce using rule 1 (STATEMENTS -> STATEMENTS STATEMENT .)
+    PRINT           reduce using rule 1 (STATEMENTS -> STATEMENTS STATEMENT .)
     $end            reduce using rule 1 (STATEMENTS -> STATEMENTS STATEMENT .)
     ELSE            reduce using rule 1 (STATEMENTS -> STATEMENTS STATEMENT .)
     OD              reduce using rule 1 (STATEMENTS -> STATEMENTS STATEMENT .)
     FI              reduce using rule 1 (STATEMENTS -> STATEMENTS STATEMENT .)
 
 
-state 9
+state 10
 
     (4) STATEMENT -> ID EQUAL . NUMBER
     (5) STATEMENT -> ID EQUAL . MATRIX
     (9) MATRIX -> . LBRACKET ROWLIST RBRACKET
 
-    NUMBER          shift and go to state 14
-    LBRACKET        shift and go to state 16
+    NUMBER          shift and go to state 16
+    LBRACKET        shift and go to state 18
 
-    MATRIX                         shift and go to state 15
-
-state 10
-
-    (8) STATEMENT -> IDS MULTIEQUAL . ID
-
-    ID              shift and go to state 17
-
+    MATRIX                         shift and go to state 17
 
 state 11
 
-    (7) IDS -> IDS COMMA . ID
+    (8) STATEMENT -> IDS MULTIEQUAL . ID
 
-    ID              shift and go to state 18
+    ID              shift and go to state 19
 
 
 state 12
 
-    (17) STATEMENT -> IF ID . LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
+    (7) IDS -> IDS COMMA . ID
 
-    LBRACKET        shift and go to state 19
+    ID              shift and go to state 20
 
 
 state 13
 
-    (18) STATEMENT -> WHILE ID . LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
+    (17) STATEMENT -> IF ID . LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
 
-    LBRACKET        shift and go to state 20
+    LBRACKET        shift and go to state 21
 
 
 state 14
+
+    (18) STATEMENT -> WHILE ID . LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
+
+    LBRACKET        shift and go to state 22
+
+
+state 15
+
+    (19) STATEMENT -> PRINT LBRACKET . IDS RBRACKET
+    (6) IDS -> . ID
+    (7) IDS -> . IDS COMMA ID
+
+    ID              shift and go to state 24
+
+    IDS                            shift and go to state 23
+
+state 16
 
     (4) STATEMENT -> ID EQUAL NUMBER .
 
@@ -221,13 +247,14 @@ state 14
     ID              reduce using rule 4 (STATEMENT -> ID EQUAL NUMBER .)
     IF              reduce using rule 4 (STATEMENT -> ID EQUAL NUMBER .)
     WHILE           reduce using rule 4 (STATEMENT -> ID EQUAL NUMBER .)
+    PRINT           reduce using rule 4 (STATEMENT -> ID EQUAL NUMBER .)
     $end            reduce using rule 4 (STATEMENT -> ID EQUAL NUMBER .)
     ELSE            reduce using rule 4 (STATEMENT -> ID EQUAL NUMBER .)
     OD              reduce using rule 4 (STATEMENT -> ID EQUAL NUMBER .)
     FI              reduce using rule 4 (STATEMENT -> ID EQUAL NUMBER .)
 
 
-state 15
+state 17
 
     (5) STATEMENT -> ID EQUAL MATRIX .
 
@@ -235,25 +262,26 @@ state 15
     ID              reduce using rule 5 (STATEMENT -> ID EQUAL MATRIX .)
     IF              reduce using rule 5 (STATEMENT -> ID EQUAL MATRIX .)
     WHILE           reduce using rule 5 (STATEMENT -> ID EQUAL MATRIX .)
+    PRINT           reduce using rule 5 (STATEMENT -> ID EQUAL MATRIX .)
     $end            reduce using rule 5 (STATEMENT -> ID EQUAL MATRIX .)
     ELSE            reduce using rule 5 (STATEMENT -> ID EQUAL MATRIX .)
     OD              reduce using rule 5 (STATEMENT -> ID EQUAL MATRIX .)
     FI              reduce using rule 5 (STATEMENT -> ID EQUAL MATRIX .)
 
 
-state 16
+state 18
 
     (9) MATRIX -> LBRACKET . ROWLIST RBRACKET
     (10) ROWLIST -> . ROWLIST COMMA ROW
     (11) ROWLIST -> . ROW
     (12) ROW -> . LBRACKET NUMBERLIST RBRACKET
 
-    LBRACKET        shift and go to state 21
+    LBRACKET        shift and go to state 25
 
-    ROWLIST                        shift and go to state 22
-    ROW                            shift and go to state 23
+    ROWLIST                        shift and go to state 26
+    ROW                            shift and go to state 27
 
-state 17
+state 19
 
     (8) STATEMENT -> IDS MULTIEQUAL ID .
 
@@ -261,13 +289,14 @@ state 17
     ID              reduce using rule 8 (STATEMENT -> IDS MULTIEQUAL ID .)
     IF              reduce using rule 8 (STATEMENT -> IDS MULTIEQUAL ID .)
     WHILE           reduce using rule 8 (STATEMENT -> IDS MULTIEQUAL ID .)
+    PRINT           reduce using rule 8 (STATEMENT -> IDS MULTIEQUAL ID .)
     $end            reduce using rule 8 (STATEMENT -> IDS MULTIEQUAL ID .)
     ELSE            reduce using rule 8 (STATEMENT -> IDS MULTIEQUAL ID .)
     OD              reduce using rule 8 (STATEMENT -> IDS MULTIEQUAL ID .)
     FI              reduce using rule 8 (STATEMENT -> IDS MULTIEQUAL ID .)
 
 
-state 18
+state 20
 
     (7) IDS -> IDS COMMA ID .
 
@@ -276,7 +305,7 @@ state 18
     RBRACKET        reduce using rule 7 (IDS -> IDS COMMA ID .)
 
 
-state 19
+state 21
 
     (17) STATEMENT -> IF ID LBRACKET . IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
     (6) IDS -> . ID
@@ -284,9 +313,9 @@ state 19
 
     ID              shift and go to state 24
 
-    IDS                            shift and go to state 25
+    IDS                            shift and go to state 28
 
-state 20
+state 22
 
     (18) STATEMENT -> WHILE ID LBRACKET . IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
     (6) IDS -> . ID
@@ -294,36 +323,15 @@ state 20
 
     ID              shift and go to state 24
 
-    IDS                            shift and go to state 26
-
-state 21
-
-    (12) ROW -> LBRACKET . NUMBERLIST RBRACKET
-    (13) NUMBERLIST -> . NUMBER
-    (14) NUMBERLIST -> . COMPLEX
-    (15) NUMBERLIST -> . NUMBERLIST COMMA NUMBER
-    (16) NUMBERLIST -> . NUMBERLIST COMMA COMPLEX
-
-    NUMBER          shift and go to state 28
-    COMPLEX         shift and go to state 29
-
-    NUMBERLIST                     shift and go to state 27
-
-state 22
-
-    (9) MATRIX -> LBRACKET ROWLIST . RBRACKET
-    (10) ROWLIST -> ROWLIST . COMMA ROW
-
-    RBRACKET        shift and go to state 30
-    COMMA           shift and go to state 31
-
+    IDS                            shift and go to state 29
 
 state 23
 
-    (11) ROWLIST -> ROW .
+    (19) STATEMENT -> PRINT LBRACKET IDS . RBRACKET
+    (7) IDS -> IDS . COMMA ID
 
-    RBRACKET        reduce using rule 11 (ROWLIST -> ROW .)
-    COMMA           reduce using rule 11 (ROWLIST -> ROW .)
+    RBRACKET        shift and go to state 30
+    COMMA           shift and go to state 12
 
 
 state 24
@@ -336,33 +344,78 @@ state 24
 
 state 25
 
-    (17) STATEMENT -> IF ID LBRACKET IDS . RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
-    (7) IDS -> IDS . COMMA ID
+    (12) ROW -> LBRACKET . NUMBERLIST RBRACKET
+    (13) NUMBERLIST -> . NUMBER
+    (14) NUMBERLIST -> . COMPLEX
+    (15) NUMBERLIST -> . NUMBERLIST COMMA NUMBER
+    (16) NUMBERLIST -> . NUMBERLIST COMMA COMPLEX
 
-    RBRACKET        shift and go to state 32
-    COMMA           shift and go to state 11
+    NUMBER          shift and go to state 32
+    COMPLEX         shift and go to state 33
 
+    NUMBERLIST                     shift and go to state 31
 
 state 26
 
-    (18) STATEMENT -> WHILE ID LBRACKET IDS . RBRACKET EQUAL NUMBER DO STATEMENTS OD
-    (7) IDS -> IDS . COMMA ID
-
-    RBRACKET        shift and go to state 33
-    COMMA           shift and go to state 11
-
-
-state 27
-
-    (12) ROW -> LBRACKET NUMBERLIST . RBRACKET
-    (15) NUMBERLIST -> NUMBERLIST . COMMA NUMBER
-    (16) NUMBERLIST -> NUMBERLIST . COMMA COMPLEX
+    (9) MATRIX -> LBRACKET ROWLIST . RBRACKET
+    (10) ROWLIST -> ROWLIST . COMMA ROW
 
     RBRACKET        shift and go to state 34
     COMMA           shift and go to state 35
 
 
+state 27
+
+    (11) ROWLIST -> ROW .
+
+    RBRACKET        reduce using rule 11 (ROWLIST -> ROW .)
+    COMMA           reduce using rule 11 (ROWLIST -> ROW .)
+
+
 state 28
+
+    (17) STATEMENT -> IF ID LBRACKET IDS . RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
+    (7) IDS -> IDS . COMMA ID
+
+    RBRACKET        shift and go to state 36
+    COMMA           shift and go to state 12
+
+
+state 29
+
+    (18) STATEMENT -> WHILE ID LBRACKET IDS . RBRACKET EQUAL NUMBER DO STATEMENTS OD
+    (7) IDS -> IDS . COMMA ID
+
+    RBRACKET        shift and go to state 37
+    COMMA           shift and go to state 12
+
+
+state 30
+
+    (19) STATEMENT -> PRINT LBRACKET IDS RBRACKET .
+
+    SKIP            reduce using rule 19 (STATEMENT -> PRINT LBRACKET IDS RBRACKET .)
+    ID              reduce using rule 19 (STATEMENT -> PRINT LBRACKET IDS RBRACKET .)
+    IF              reduce using rule 19 (STATEMENT -> PRINT LBRACKET IDS RBRACKET .)
+    WHILE           reduce using rule 19 (STATEMENT -> PRINT LBRACKET IDS RBRACKET .)
+    PRINT           reduce using rule 19 (STATEMENT -> PRINT LBRACKET IDS RBRACKET .)
+    $end            reduce using rule 19 (STATEMENT -> PRINT LBRACKET IDS RBRACKET .)
+    ELSE            reduce using rule 19 (STATEMENT -> PRINT LBRACKET IDS RBRACKET .)
+    OD              reduce using rule 19 (STATEMENT -> PRINT LBRACKET IDS RBRACKET .)
+    FI              reduce using rule 19 (STATEMENT -> PRINT LBRACKET IDS RBRACKET .)
+
+
+state 31
+
+    (12) ROW -> LBRACKET NUMBERLIST . RBRACKET
+    (15) NUMBERLIST -> NUMBERLIST . COMMA NUMBER
+    (16) NUMBERLIST -> NUMBERLIST . COMMA COMPLEX
+
+    RBRACKET        shift and go to state 38
+    COMMA           shift and go to state 39
+
+
+state 32
 
     (13) NUMBERLIST -> NUMBER .
 
@@ -370,7 +423,7 @@ state 28
     COMMA           reduce using rule 13 (NUMBERLIST -> NUMBER .)
 
 
-state 29
+state 33
 
     (14) NUMBERLIST -> COMPLEX .
 
@@ -378,7 +431,7 @@ state 29
     COMMA           reduce using rule 14 (NUMBERLIST -> COMPLEX .)
 
 
-state 30
+state 34
 
     (9) MATRIX -> LBRACKET ROWLIST RBRACKET .
 
@@ -386,36 +439,37 @@ state 30
     ID              reduce using rule 9 (MATRIX -> LBRACKET ROWLIST RBRACKET .)
     IF              reduce using rule 9 (MATRIX -> LBRACKET ROWLIST RBRACKET .)
     WHILE           reduce using rule 9 (MATRIX -> LBRACKET ROWLIST RBRACKET .)
+    PRINT           reduce using rule 9 (MATRIX -> LBRACKET ROWLIST RBRACKET .)
     $end            reduce using rule 9 (MATRIX -> LBRACKET ROWLIST RBRACKET .)
     ELSE            reduce using rule 9 (MATRIX -> LBRACKET ROWLIST RBRACKET .)
     OD              reduce using rule 9 (MATRIX -> LBRACKET ROWLIST RBRACKET .)
     FI              reduce using rule 9 (MATRIX -> LBRACKET ROWLIST RBRACKET .)
 
 
-state 31
+state 35
 
     (10) ROWLIST -> ROWLIST COMMA . ROW
     (12) ROW -> . LBRACKET NUMBERLIST RBRACKET
 
-    LBRACKET        shift and go to state 21
+    LBRACKET        shift and go to state 25
 
-    ROW                            shift and go to state 36
+    ROW                            shift and go to state 40
 
-state 32
+state 36
 
     (17) STATEMENT -> IF ID LBRACKET IDS RBRACKET . EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
 
-    EQUAL           shift and go to state 37
+    EQUAL           shift and go to state 41
 
 
-state 33
+state 37
 
     (18) STATEMENT -> WHILE ID LBRACKET IDS RBRACKET . EQUAL NUMBER DO STATEMENTS OD
 
-    EQUAL           shift and go to state 38
+    EQUAL           shift and go to state 42
 
 
-state 34
+state 38
 
     (12) ROW -> LBRACKET NUMBERLIST RBRACKET .
 
@@ -423,16 +477,16 @@ state 34
     COMMA           reduce using rule 12 (ROW -> LBRACKET NUMBERLIST RBRACKET .)
 
 
-state 35
+state 39
 
     (15) NUMBERLIST -> NUMBERLIST COMMA . NUMBER
     (16) NUMBERLIST -> NUMBERLIST COMMA . COMPLEX
 
-    NUMBER          shift and go to state 39
-    COMPLEX         shift and go to state 40
+    NUMBER          shift and go to state 43
+    COMPLEX         shift and go to state 44
 
 
-state 36
+state 40
 
     (10) ROWLIST -> ROWLIST COMMA ROW .
 
@@ -440,21 +494,21 @@ state 36
     COMMA           reduce using rule 10 (ROWLIST -> ROWLIST COMMA ROW .)
 
 
-state 37
+state 41
 
     (17) STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL . NUMBER THEN STATEMENTS ELSE STATEMENTS FI
 
-    NUMBER          shift and go to state 41
+    NUMBER          shift and go to state 45
 
 
-state 38
+state 42
 
     (18) STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL . NUMBER DO STATEMENTS OD
 
-    NUMBER          shift and go to state 42
+    NUMBER          shift and go to state 46
 
 
-state 39
+state 43
 
     (15) NUMBERLIST -> NUMBERLIST COMMA NUMBER .
 
@@ -462,7 +516,7 @@ state 39
     COMMA           reduce using rule 15 (NUMBERLIST -> NUMBERLIST COMMA NUMBER .)
 
 
-state 40
+state 44
 
     (16) NUMBERLIST -> NUMBERLIST COMMA COMPLEX .
 
@@ -470,21 +524,21 @@ state 40
     COMMA           reduce using rule 16 (NUMBERLIST -> NUMBERLIST COMMA COMPLEX .)
 
 
-state 41
+state 45
 
     (17) STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER . THEN STATEMENTS ELSE STATEMENTS FI
 
-    THEN            shift and go to state 43
+    THEN            shift and go to state 47
 
 
-state 42
+state 46
 
     (18) STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER . DO STATEMENTS OD
 
-    DO              shift and go to state 44
+    DO              shift and go to state 48
 
 
-state 43
+state 47
 
     (17) STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN . STATEMENTS ELSE STATEMENTS FI
     (1) STATEMENTS -> . STATEMENTS STATEMENT
@@ -495,6 +549,7 @@ state 43
     (8) STATEMENT -> . IDS MULTIEQUAL ID
     (17) STATEMENT -> . IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
     (18) STATEMENT -> . WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
+    (19) STATEMENT -> . PRINT LBRACKET IDS RBRACKET
     (6) IDS -> . ID
     (7) IDS -> . IDS COMMA ID
 
@@ -502,12 +557,13 @@ state 43
     ID              shift and go to state 4
     IF              shift and go to state 6
     WHILE           shift and go to state 7
+    PRINT           shift and go to state 8
 
     IDS                            shift and go to state 5
-    STATEMENTS                     shift and go to state 45
+    STATEMENTS                     shift and go to state 49
     STATEMENT                      shift and go to state 2
 
-state 44
+state 48
 
     (18) STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO . STATEMENTS OD
     (1) STATEMENTS -> . STATEMENTS STATEMENT
@@ -518,6 +574,7 @@ state 44
     (8) STATEMENT -> . IDS MULTIEQUAL ID
     (17) STATEMENT -> . IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
     (18) STATEMENT -> . WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
+    (19) STATEMENT -> . PRINT LBRACKET IDS RBRACKET
     (6) IDS -> . ID
     (7) IDS -> . IDS COMMA ID
 
@@ -525,12 +582,13 @@ state 44
     ID              shift and go to state 4
     IF              shift and go to state 6
     WHILE           shift and go to state 7
+    PRINT           shift and go to state 8
 
     IDS                            shift and go to state 5
-    STATEMENTS                     shift and go to state 46
+    STATEMENTS                     shift and go to state 50
     STATEMENT                      shift and go to state 2
 
-state 45
+state 49
 
     (17) STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS . ELSE STATEMENTS FI
     (1) STATEMENTS -> STATEMENTS . STATEMENT
@@ -540,19 +598,21 @@ state 45
     (8) STATEMENT -> . IDS MULTIEQUAL ID
     (17) STATEMENT -> . IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
     (18) STATEMENT -> . WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
+    (19) STATEMENT -> . PRINT LBRACKET IDS RBRACKET
     (6) IDS -> . ID
     (7) IDS -> . IDS COMMA ID
 
-    ELSE            shift and go to state 47
+    ELSE            shift and go to state 51
     SKIP            shift and go to state 3
     ID              shift and go to state 4
     IF              shift and go to state 6
     WHILE           shift and go to state 7
+    PRINT           shift and go to state 8
 
     IDS                            shift and go to state 5
-    STATEMENT                      shift and go to state 8
+    STATEMENT                      shift and go to state 9
 
-state 46
+state 50
 
     (18) STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS . OD
     (1) STATEMENTS -> STATEMENTS . STATEMENT
@@ -562,19 +622,21 @@ state 46
     (8) STATEMENT -> . IDS MULTIEQUAL ID
     (17) STATEMENT -> . IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
     (18) STATEMENT -> . WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
+    (19) STATEMENT -> . PRINT LBRACKET IDS RBRACKET
     (6) IDS -> . ID
     (7) IDS -> . IDS COMMA ID
 
-    OD              shift and go to state 48
+    OD              shift and go to state 52
     SKIP            shift and go to state 3
     ID              shift and go to state 4
     IF              shift and go to state 6
     WHILE           shift and go to state 7
+    PRINT           shift and go to state 8
 
     IDS                            shift and go to state 5
-    STATEMENT                      shift and go to state 8
+    STATEMENT                      shift and go to state 9
 
-state 47
+state 51
 
     (17) STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE . STATEMENTS FI
     (1) STATEMENTS -> . STATEMENTS STATEMENT
@@ -585,6 +647,7 @@ state 47
     (8) STATEMENT -> . IDS MULTIEQUAL ID
     (17) STATEMENT -> . IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
     (18) STATEMENT -> . WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
+    (19) STATEMENT -> . PRINT LBRACKET IDS RBRACKET
     (6) IDS -> . ID
     (7) IDS -> . IDS COMMA ID
 
@@ -592,12 +655,13 @@ state 47
     ID              shift and go to state 4
     IF              shift and go to state 6
     WHILE           shift and go to state 7
+    PRINT           shift and go to state 8
 
     IDS                            shift and go to state 5
-    STATEMENTS                     shift and go to state 49
+    STATEMENTS                     shift and go to state 53
     STATEMENT                      shift and go to state 2
 
-state 48
+state 52
 
     (18) STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD .
 
@@ -605,13 +669,14 @@ state 48
     ID              reduce using rule 18 (STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD .)
     IF              reduce using rule 18 (STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD .)
     WHILE           reduce using rule 18 (STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD .)
+    PRINT           reduce using rule 18 (STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD .)
     $end            reduce using rule 18 (STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD .)
     ELSE            reduce using rule 18 (STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD .)
     OD              reduce using rule 18 (STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD .)
     FI              reduce using rule 18 (STATEMENT -> WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD .)
 
 
-state 49
+state 53
 
     (17) STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS . FI
     (1) STATEMENTS -> STATEMENTS . STATEMENT
@@ -621,19 +686,21 @@ state 49
     (8) STATEMENT -> . IDS MULTIEQUAL ID
     (17) STATEMENT -> . IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI
     (18) STATEMENT -> . WHILE ID LBRACKET IDS RBRACKET EQUAL NUMBER DO STATEMENTS OD
+    (19) STATEMENT -> . PRINT LBRACKET IDS RBRACKET
     (6) IDS -> . ID
     (7) IDS -> . IDS COMMA ID
 
-    FI              shift and go to state 50
+    FI              shift and go to state 54
     SKIP            shift and go to state 3
     ID              shift and go to state 4
     IF              shift and go to state 6
     WHILE           shift and go to state 7
+    PRINT           shift and go to state 8
 
     IDS                            shift and go to state 5
-    STATEMENT                      shift and go to state 8
+    STATEMENT                      shift and go to state 9
 
-state 50
+state 54
 
     (17) STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI .
 
@@ -641,6 +708,7 @@ state 50
     ID              reduce using rule 17 (STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI .)
     IF              reduce using rule 17 (STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI .)
     WHILE           reduce using rule 17 (STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI .)
+    PRINT           reduce using rule 17 (STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI .)
     $end            reduce using rule 17 (STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI .)
     ELSE            reduce using rule 17 (STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI .)
     OD              reduce using rule 17 (STATEMENT -> IF ID LBRACKET IDS RBRACKET EQUAL NUMBER THEN STATEMENTS ELSE STATEMENTS FI .)

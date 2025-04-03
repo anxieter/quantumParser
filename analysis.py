@@ -4,6 +4,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from pyvis.network import Network
 import webbrowser
+from queue import Queue
 from projector import *
 # define enum for different types of statements
 SUBSPACE = 1
@@ -22,6 +23,7 @@ class Location:
         self.nexts: List[Line] = []
         self.invariant = None
         self.need_widening = False
+        self.need_print = False
     def __str__(self) -> str:
         return f'{self.id}:{self.invariant}'
     
@@ -38,6 +40,9 @@ class Location:
         self.qid = qid
         self.value = value
    
+    def set_print(self, ids):
+        self.need_print = True
+        self.print_ids = ids
         
 class ControlFlowGraph:
     def __init__(self, program: Program):
@@ -64,21 +69,18 @@ class ControlFlowGraph:
                 last_location.add_next(new_location, Skip(n).matrix(), "skip")
                 new_location.add_parent(last_location, Skip(n).matrix(), "skip")
                 last_location = new_location
-                continue
             if statement.type == ASSIGNMENT:
                 new_location = self.create_location()
                 last_location.set_assigned_id(statement.p, statement.value)
                 new_location.add_parent(last_location, None, str(statement))
                 last_location.add_next(new_location, None, str(statement))
                 last_location = new_location
-                continue
             if statement.type == UNITARY_TRANSFORM:
                 # create a new location
                 new_location = self.create_location()
                 new_location.add_parent(last_location, statement.matrix(), str(statement))
                 last_location.add_next(new_location, statement.matrix(), str(statement))
                 last_location = new_location
-                continue
             if statement.type == IF:
                 if_location = self.create_location()
                 exit1 = self.generate(statement.S1)
@@ -94,7 +96,6 @@ class ControlFlowGraph:
                 last_location.add_next(if_location, statement.if_matrix(), "if")
                 last_location.add_next(else_location, statement.else_matrix(), "else")
                 last_location = exit_location
-                continue
             if statement.type == WHILE:
                 last_location.set_widen()
                 loop_location = self.create_location()
@@ -106,6 +107,8 @@ class ControlFlowGraph:
                 last_location.add_next(loop_location, statement.continue_matrix(), "loop")
                 last_location.add_next(exit_location, statement.exit_matrix(), "exit")
                 last_location = exit_location
+            if statement.need_print:
+                last_location.set_print(statement.ids)
         return last_location
     def create_location(self):
         new_location = Location(self.id)
@@ -127,9 +130,14 @@ class ControlFlowGraph:
         pos = nx.spring_layout(G)
         edge_labels = {(i, j): d['label'] for i, j,d in G.edges(data=True)}
         nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color='gray', node_size=2000, font_size=12)
+        node_labels = {node: str(node) for node in G.nodes()}
+        nx.draw_networkx_labels(G, pos, labels=node_labels, font_color='black', font_size=14)
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels,font_color='red')
         net  = Network(notebook=True, directed=True)
-        net.from_nx(G)
+        for node in G.nodes():
+            net.add_node(node, label=str(node))
+        for i,j,d in G.edges(data=True):
+            net.add_edge(i, j, label=d['label'])
         net.show("graph.html")
         webbrowser.open("graph.html")
 class Analyser:
@@ -149,16 +157,20 @@ class Analyser:
         self.cfg = cfg
         # step2 init state
         initial_state = self.state
-        need_update = []
+        need_update = Queue()
         for next in cfg.init_location.nexts:
-            need_update.append(cfg.locations[next.id])
-        while need_update:
-            cur = need_update.pop()
+            need_update.put(cfg.locations[next.id])
+        while need_update.empty() == False:
+            cur = need_update.get()
             print("updating", cur.id)
+            # print("updating", cur.id)
             # print("current:", str(cur))
             if self.update_from_parents(cur):
+                if cur.need_print:
+                    print("location", cur.id)
+                    print(trace_out(cur.invariant, cur.print_ids, self.n))
                 for next in cur.nexts:
-                    need_update.append(cfg.locations[next.id])
+                    need_update.put(cfg.locations[next.id])
         print("done")
         # for loc in cfg.locations:
             # print('location', loc.id,'; invariant:', loc.invariant)
@@ -168,14 +180,21 @@ class Analyser:
         if matrix.type == UNITARY:
             return matrix.mat @ invariant @ matrix.mat.T
         elif matrix.type == PROJECTOR:
-            return sasaki_projection(matrix.mat, invariant)
+            print("sasaki_projection")
+            print("matrix", np.array(matrix.mat, dtype=np.float64))
+            print("invariant", np.array(invariant, dtype=np.float64))
+            res =  sasaki_projection(matrix.mat, invariant)
+            print("res", np.array(res, dtype=np.float64))
+            return res
         else:
             raise ValueError("unknown matrix type")
 
     def update_invariant_for_assignment(self, invariant, qid, value):
-        print(np.array(invariant, dtype=np.float64))
-        print("set qid", qid, "to value", value)
+        # print(np.array(invariant, dtype=np.float64))
+        # print("set qid", qid, "to value", value)
         egvecs = supp_vecs(invariant)
+        if len(egvecs) == 0:
+            return np.zeros_like(invariant)
         target_vecs = None
         ket_0 = np.array([1, 0], dtype=np.complex128)
         ket_1 = np.array([0, 1], dtype=np.complex128)
