@@ -168,7 +168,7 @@ class Analyser:
             if self.update_from_parents(cur):
                 if cur.need_print:
                     print("location", cur.id)
-                    print(np.array(trace_out(cur.invariant, cur.print_ids, self.n), dtype=np.float64))
+                    print(trace_out(cur.invariant, cur.print_ids, self.n))
                 for next in cur.nexts:
                     need_update.put(cfg.locations[next.id])
         print("done")           

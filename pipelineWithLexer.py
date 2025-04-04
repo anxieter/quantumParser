@@ -20,7 +20,7 @@ analyser = Analyser(qubit_count, program)
 analyser.abstract_interpret()
 inv = analyser.cfg.last_location.invariant
 # print(inv.shape)
-# print(np.array(inv, dtype=np.float64))
+print(inv)
 # print(trace_out(inv, [1,3], qubit_count))
 # print(trace_out(inv, [1], qubit_count))
 # print(trace_out(inv, [2], qubit_count))

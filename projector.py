@@ -8,11 +8,13 @@ def random_projector_rank_k(dim, k):
     P = Q @ Q.conj().T  # 计算投影矩阵
     return P
 
-def remove_small_values(P):
-    tol = 1e-10
-    mask = np.abs(P) < tol
-    P[mask] = 0
-    return P
+def remove_small_values(matrix):
+    real = np.real(matrix)
+    imag = np.imag(matrix)
+    threshold = 1e-10
+    real[np.abs(real) < threshold] = 0
+    imag[np.abs(imag) < threshold] = 0
+    return real + 1j * imag
 
 def supp(R):
     # return the support space of R
@@ -21,7 +23,7 @@ def supp(R):
     rank = np.linalg.matrix_rank(R)
     U_basis = U[:, :rank]
     projector = U_basis @ U_basis.conj().T
-    return np.array(projector, dtype=np.complex128)
+    return  remove_small_values(np.array(projector, dtype=np.complex128))
         
 
 def supp_vecs(R):
@@ -32,17 +34,13 @@ def supp_vecs(R):
 
 def join(P, Q):
     # print(P.shape, Q.shape)
-    M = np.hstack((P, Q))
-    q, r = np.linalg.qr(M)
-    res = np.zeros(P.shape, dtype=np.complex128)
-    q = np.array(q, dtype=np.complex128)
-    tol = 1e-10
-    # 得到 r 的非零行数
-    r_nz = np.sum(np.abs(r) > tol, axis=1)
-    for col in range(P.shape[0]):
-        if r_nz[col] != 0:
-            res += np.outer(q[:, col], q[:, col])
-    return remove_small_values(res)
+    R = P @ Q
+    res = np.copy(P)
+    diff = R - Q
+    for col in range(diff.shape[1]):
+        if np.linalg.norm(diff[:, col]) > 1e-10:
+            res = np.hstack((res, diff[:, col].reshape(-1, 1)))
+    return supp(res)
 
 def intersect(P, Q):
     n = P.shape[0]
