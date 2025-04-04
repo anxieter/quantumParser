@@ -168,10 +168,10 @@ class Analyser:
             if self.update_from_parents(cur):
                 if cur.need_print:
                     print("location", cur.id)
-                    print(trace_out(cur.invariant, cur.print_ids, self.n))
+                    print(np.array(trace_out(cur.invariant, cur.print_ids, self.n), dtype=np.float64))
                 for next in cur.nexts:
                     need_update.put(cfg.locations[next.id])
-        print("done")
+        print("done")           
         # for loc in cfg.locations:
             # print('location', loc.id,'; invariant:', loc.invariant)
     
@@ -180,11 +180,11 @@ class Analyser:
         if matrix.type == UNITARY:
             return matrix.mat @ invariant @ matrix.mat.T
         elif matrix.type == PROJECTOR:
-            print("sasaki_projection")
-            print("matrix", np.array(matrix.mat, dtype=np.float64))
-            print("invariant", np.array(invariant, dtype=np.float64))
+            # print("sasaki_projection")
+            # print("matrix", np.array(matrix.mat, dtype=np.float64))
+            # print("invariant", np.array(invariant, dtype=np.float64))
             res =  sasaki_projection(matrix.mat, invariant)
-            print("res", np.array(res, dtype=np.float64))
+            # print("res", np.array(res, dtype=np.float64))
             return res
         else:
             raise ValueError("unknown matrix type")
@@ -200,7 +200,7 @@ class Analyser:
         ket_1 = np.array([0, 1], dtype=np.complex128)
         if value == 0:
             U_0 = expand_operator(np.outer(ket_0, ket_0), [qid], self.n)
-            U_1 = expand_operator(np.outer(ket_0, ket_1), [qid], self.n)
+            U_1 = expand_operator(np.outer(ket_0, ket_1), [qid],  self.n)
         else:
             U_0 = expand_operator(np.outer(ket_1, ket_0), [qid], self.n)
             U_1 = expand_operator(np.outer(ket_1, ket_1), [qid], self.n)

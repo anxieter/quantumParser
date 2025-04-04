@@ -4,7 +4,8 @@ import ply.yacc as yacc
 # 词法分析器（Lexer）
 tokens = (
     'SKIP',  'IF', 'THEN', 'ELSE', 'FI', 'WHILE', 'DO', 'OD',
-      'EQUAL', 'LBRACKET', 'RBRACKET', 'NUMBER', 'COMMA','ID','MULTIEQUAL' ,'COMPLEX', 'PRINT'
+      'EQUAL', 'LBRACKET', 'RBRACKET', 'NUMBER', 'COMMA','ID','MULTIEQUAL' ,'COMPLEX', 'PRINT',
+      
 )
 
 t_LBRACKET = r'\['

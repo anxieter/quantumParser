@@ -1,9 +1,7 @@
 from myparser import lexer
 from analysis import *
-from program import generateFromLex
 path = 'test.txt'
 qubit_count = 4 # TODO: get qubit count from the file
-
 
 
 with open(path) as f:

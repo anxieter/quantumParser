@@ -60,8 +60,10 @@ def intersect(P, Q):
 
 
 def sasaki_projection(P, Q):
-    P_otho = np.eye(P.shape[0]) - P
-    M = join(P_otho,Q)
+    # print(P @ Q @ P)
+    return supp(P @ Q @ P)
+    # P_otho = np.eye(P.shape[0]) - P
+    # M = join(P_otho,Q)
     # print(M)
-    M = intersect(P, M)
-    return M
+    # M = intersect(P, M)
+    # return M
