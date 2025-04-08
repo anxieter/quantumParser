@@ -11,7 +11,6 @@ class Program:
         self.cnt = 0
         
     def addStatement(self, statement):
-        print("adding statement", statement)
         if statement[0] == 'assign':
             var_name = statement[1]
             value = float(statement[2])

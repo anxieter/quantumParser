@@ -25,6 +25,22 @@ def supp(R):
     projector = U_basis @ U_basis.conj().T
     return  remove_small_values(np.array(projector, dtype=np.complex128))
         
+def get_qubits(R):
+    n = np.log2(R.shape[0])
+    n = int(n)
+    res = n * [0]
+    for i in range(R.shape[0]):
+        for j in range(R.shape[1]):
+            if R[i,j] != 0:
+                for k in range(n):
+                    if (i >> k) & 1 == 1:
+                        res[k] = 1
+    res = [i for i in range(len(res)) if res[i] == 1]
+    return res
+
+
+    
+
 
 def supp_vecs(R):
     U, S, Vh = np.linalg.svd(R)
@@ -34,13 +50,8 @@ def supp_vecs(R):
 
 def join(P, Q):
     # print(P.shape, Q.shape)
-    R = P @ Q
-    res = np.copy(P)
-    diff = R - Q
-    for col in range(diff.shape[1]):
-        if np.linalg.norm(diff[:, col]) > 1e-10:
-            res = np.hstack((res, diff[:, col].reshape(-1, 1)))
-    return supp(res)
+    R = P + Q
+    return supp(R)
 
 def intersect(P, Q):
     n = P.shape[0]
