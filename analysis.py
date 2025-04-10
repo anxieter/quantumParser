@@ -104,6 +104,7 @@ class ControlFlowGraph:
                 exit_location = self.create_location()
                 exit_location.add_parent(last_location, statement.exit_matrix(), "exit")
                 loop_exit.add_next(last_location, Skip(n).matrix(), "skip")
+                last_location.add_parent(loop_exit, Skip(n).matrix(), "skip")
                 last_location.add_next(loop_location, statement.continue_matrix(), "loop")
                 last_location.add_next(exit_location, statement.exit_matrix(), "exit")
                 last_location = exit_location
@@ -192,10 +193,6 @@ class Analyser:
     def update_invariant_for_assignment(self, invariant, qid, value):
         # print(np.array(invariant, dtype=np.float64))
         # print("set qid", qid, "to value", value)
-        egvecs = supp_vecs(invariant)
-        if len(egvecs) == 0:
-            return np.zeros_like(invariant)
-        target_vecs = None
         ket_0 = np.array([1, 0], dtype=np.complex128)
         ket_1 = np.array([0, 1], dtype=np.complex128)
         if value == 0:
@@ -204,15 +201,9 @@ class Analyser:
         else:
             U_0 = expand_operator(np.outer(ket_1, ket_0), [qid], self.n)
             U_1 = expand_operator(np.outer(ket_1, ket_1), [qid], self.n)
-        for vec in egvecs:
-            rho = np.outer(vec, vec)
-            rho = U_0 @ rho @ U_0.conj().T + U_1 @ rho @ U_1.conj().T
-            if target_vecs is None:
-                target_vecs = supp_vecs(rho)
-            else:
-                target_vecs = np.vstack((target_vecs, supp_vecs(rho)))
+        res = U_0 @ invariant @ U_0.conj().T + U_1 @ invariant @ U_1.conj().T
         
-        return supp(target_vecs.T)
+        return supp(res)
     
     def update_from_parents(self, loc: Location):
         Q = None

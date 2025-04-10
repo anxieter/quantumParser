@@ -9,8 +9,10 @@ CNOT = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]
 r *= H
 r,s *= CNOT
 P = [[1,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+print[q,t,r,s]
 while P[q,t]=0 do
 q = 0
+print[q,t,r,s]
 t = 0
 q *= H
 t *= H
@@ -30,3 +32,4 @@ print[r,s]
 fi
 print[q,t,r,s]
 od
+print[r,s]
