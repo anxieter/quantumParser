@@ -9,7 +9,7 @@ from projector import *
 # define enum for different types of statements
 SUBSPACE = 1
 SUBSPACE_WITH_SIG = 2
-
+THRESHOLD = 2 # 2 times widening
 class Line:
     def __init__(self, id: int, matrix: QOMatrix, label: str):
         self.id = id
@@ -23,7 +23,9 @@ class Location:
         self.nexts: List[Line] = []
         self.invariant = None
         self.need_widening = False
+        self.widening_count = []
         self.need_print = False
+        
     def __str__(self) -> str:
         return f'{self.id}:{self.invariant}'
     
@@ -33,8 +35,9 @@ class Location:
     def add_next(self, next_loc, matrix, label):
         self.nexts.append(Line(next_loc.id, matrix, label))
         
-    def set_widen(self):
+    def set_widen(self, n):
         self.need_widening = True
+        self.widening_count = np.array([0] * n)
 
     def set_assigned_id(self, qid, value):
         self.qid = qid
@@ -97,7 +100,7 @@ class ControlFlowGraph:
                 last_location.add_next(else_location, statement.else_matrix(), "else")
                 last_location = exit_location
             if statement.type == WHILE:
-                last_location.set_widen()
+                last_location.set_widen(self.n)
                 loop_location = self.create_location()
                 loop_location.add_parent(last_location, statement.continue_matrix(), "loop")
                 loop_exit = self.generate(statement.S) 
@@ -160,9 +163,9 @@ class Analyser:
         initial_state = self.state
         need_update = Queue()
         for next in cfg.init_location.nexts:
-            need_update.put(cfg.locations[next.id])
+            need_update.put(next.id)
         while need_update.empty() == False:
-            cur = need_update.get()
+            cur = cfg.locations[need_update.get()]
             print("updating", cur.id)
             # print("updating", cur.id)
             # print("current:", str(cur))
@@ -171,7 +174,8 @@ class Analyser:
                     print("location", cur.id)
                     print(trace_out(cur.invariant, cur.print_ids, self.n))
                 for next in cur.nexts:
-                    need_update.put(cfg.locations[next.id])
+                    if next.id not in need_update.queue:   
+                        need_update.put(next.id)
         print("done")           
         # for loc in cfg.locations:
             # print('location', loc.id,'; invariant:', loc.invariant)
@@ -190,7 +194,7 @@ class Analyser:
         else:
             raise ValueError("unknown matrix type")
 
-    def update_invariant_for_assignment(self, invariant, qid, value):
+    def update_invariant_for_assignment(self, invariant, qid, value, need_print):
         # print(np.array(invariant, dtype=np.float64))
         # print("set qid", qid, "to value", value)
         ket_0 = np.array([1, 0], dtype=np.complex128)
@@ -201,7 +205,11 @@ class Analyser:
         else:
             U_0 = expand_operator(np.outer(ket_1, ket_0), [qid], self.n)
             U_1 = expand_operator(np.outer(ket_1, ket_1), [qid], self.n)
-        res = U_0 @ invariant @ U_0.conj().T + U_1 @ invariant @ U_1.conj().T
+        if need_print:
+            print("U_0", np.array(U_0, dtype=np.float64))
+            print("U_1", np.array(U_1, dtype=np.float64))
+            print("invariant", np.array(invariant))
+        res = U_0 @ invariant @ U_0.T + U_1 @ invariant @ U_1.T
         
         return supp(res)
     
@@ -215,13 +223,32 @@ class Analyser:
                 if matrix is not None:
                     update_par_inv = self.update_invariant_with_matrix(parent_node.invariant, matrix)
                 else: # Assignment 
-                    update_par_inv = self.update_invariant_for_assignment(parent_node.invariant, parent_node.qid, parent_node.value)
+                    update_par_inv = self.update_invariant_for_assignment(parent_node.invariant, parent_node.qid, parent_node.value, loc.need_print)
                 if Q is None:
                     Q = update_par_inv
                 else:
                     old_Q = Q
                     # TODO: widening
-                    Q = join(Q, update_par_inv)
+                    if loc.need_widening:
+                        if np.array_equal(Q @ update_par_inv, Q):
+                            pass
+                        else:
+                            qubits = get_qubits(update_par_inv)
+                            loc.widening_count[qubits] += 1
+                            print("widening ", loc.widening_count)
+                            indices = []
+                            for i in range(len(loc.widening_count)):
+                                if loc.widening_count[i] < THRESHOLD:
+                                    indices.append(i)
+                            if len(indices) == self.n:
+                                Q = join(Q, update_par_inv)
+                            elif len(indices) == 0:
+                                Q = np.eye(2**self.n)
+                            else:
+                                Q = trace_out(Q, indices, self.n)
+                                Q = expand_operator(Q, indices, self.n)                        
+                    else:                            
+                        Q = join(Q, update_par_inv)
         if loc.invariant is not None:
             loc.invariant = join(loc.invariant, Q)
         else:

@@ -1,2 +1,0 @@
-qubit_count = 4
-
