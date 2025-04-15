@@ -27,16 +27,18 @@ def supp(R):
         
 def get_qubits(R):
     n = np.log2(R.shape[0])
+    #! cannot compute actually
     n = int(n)
-    res = n * [0]
-    for i in range(R.shape[0]):
-        for j in range(R.shape[1]):
-            if R[i,j] != 0:
-                for k in range(n):
-                    if (i >> k) & 1 == 1:
-                        res[k] = 1
-    res = [i for i in range(len(res)) if res[i] == 1]
-    return res
+    return range(n)
+    # res = n * [0]
+    # for i in range(R.shape[0]):
+    #     for j in range(R.shape[1]):
+    #         if R[i,j] != 0:
+    #             for k in range(n):
+    #                 if (i >> k) & 1 == 1:
+    #                     res[k] = 1
+    # res = [i for i in range(len(res)) if res[i] == 1]
+    # return res
 
 
     

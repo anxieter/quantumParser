@@ -9,7 +9,7 @@ from projector import *
 # define enum for different types of statements
 SUBSPACE = 1
 SUBSPACE_WITH_SIG = 2
-THRESHOLD = 2 # 2 times widening
+THRESHOLD = 2 # 2 times widening, because for repeat-until-success program, it converges in 2 times and there's no need for widening, and for general while loop ,we need to converge fast
 class Line:
     def __init__(self, id: int, matrix: QOMatrix, label: str):
         self.id = id
@@ -55,6 +55,7 @@ class ControlFlowGraph:
         init_location = Location(0)
         init_location.invariant = np.eye(2**self.n)
         self.locations.append(init_location)
+        self.widening_locations = []
         self.init_location = init_location
         self.id = 1
         self.last_location = self.generate(program)
@@ -101,6 +102,7 @@ class ControlFlowGraph:
                 last_location = exit_location
             if statement.type == WHILE:
                 last_location.set_widen(self.n)
+                self.widening_locations.append(last_location)
                 loop_location = self.create_location()
                 loop_location.add_parent(last_location, statement.continue_matrix(), "loop")
                 loop_exit = self.generate(statement.S) 
@@ -213,7 +215,7 @@ class Analyser:
         
         return supp(res)
     
-    def update_from_parents(self, loc: Location):
+    def update_from_parents(self, loc: Location, widening_enable: bool = True):
         Q = None
         old_inv = loc.invariant
         for parent in loc.parents:
@@ -227,13 +229,13 @@ class Analyser:
                 if Q is None:
                     Q = update_par_inv
                 else:
-                    old_Q = Q
                     # TODO: widening
-                    if loc.need_widening:
+                    if loc.need_widening and widening_enable:
                         if np.array_equal(Q @ update_par_inv, Q):
                             pass
                         else:
                             qubits = get_qubits(update_par_inv)
+                            
                             loc.widening_count[qubits] += 1
                             print("widening ", loc.widening_count)
                             indices = []
@@ -249,10 +251,8 @@ class Analyser:
                                 Q = expand_operator(Q, indices, self.n)                        
                     else:                            
                         Q = join(Q, update_par_inv)
-        if loc.invariant is not None:
-            loc.invariant = join(loc.invariant, Q)
-        else:
-            loc.invariant = Q
+       
+        loc.invariant = Q
         if old_inv is None and loc.invariant is None:
             return False
         if old_inv is None and loc.invariant is not None:
@@ -262,3 +262,53 @@ class Analyser:
         if old_inv is not None and loc.invariant is not None:
             return not np.array_equal(old_inv, loc.invariant)
                     
+    def narrowing(self):
+        cfg = self.cfg
+        need_update = Queue()
+        for next in cfg.widening_locations:
+            need_update.put(next.id)
+        while need_update.empty() == False:
+            cur = cfg.locations[need_update.get()]
+            print("updating", cur.id)
+            # print("updating", cur.id)
+            # print("current:", str(cur))
+            if self.update_from_parents_with_narrowing(cur):
+                if cur.need_print:
+                    print("location", cur.id)
+                    print(trace_out(cur.invariant, cur.print_ids, self.n))
+                for next in cur.nexts:
+                    if next.id not in need_update.queue:   
+                        need_update.put(next.id)
+        print("done") 
+        
+    def update_from_parents_with_narrowing(self, loc: Location):
+        if loc.need_widening:
+            # narrowing
+            old_inv = loc.invariant
+            wd_count = loc.widening_count
+            indices = []
+            for i,count in enumerate(wd_count):
+                if count >= THRESHOLD:
+                    indices.append(i)
+            if len(indices) == 0: # already narrowed
+                return False
+            else:
+                print("narrowing")
+                loc.widening_count[indices] = np.array([0] * len(indices))
+                np.set_printoptions(threshold=np.inf)
+                Q = None
+                for par in loc.parents:
+                    par_loc = self.cfg.locations[par.id]
+                    if par_loc.invariant is not None:
+                        if Q is None:
+                            Q = par_loc.invariant
+                        else:
+                            Q = join(Q, par_loc.invariant)
+                
+                Q = trace_out(Q, indices, self.n)
+                new_inv = sasaki_projection(old_inv, expand_operator(Q,indices, self.n))
+                loc.invariant = new_inv
+                return not np.array_equal(old_inv, new_inv)                
+        else:
+            loc.invariant = None
+            return self.update_from_parents(loc, False)

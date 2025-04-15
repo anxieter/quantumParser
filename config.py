@@ -6,5 +6,5 @@ target_inv_qubits: the qubits we want to trace out
 '''
 
 path = 'test2.txt'
-qubit_count = 5 
-target_inv_qubits = [1, 2, 3, 4] 
+qubit_count = 4
+target_inv_qubits = [2, 3] 
