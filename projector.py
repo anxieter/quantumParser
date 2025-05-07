@@ -78,3 +78,10 @@ def sasaki_projection(P, Q):
     # print(M)
     # M = intersect(P, M)
     # return M
+
+def mat_equal(P, Q):
+    tor = 1e-10
+    if np.abs(P - Q).max() < tor:
+        return True
+    else:
+        return False

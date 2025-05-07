@@ -15,7 +15,7 @@ graph = ControlFlowGraph(program)
 graph.show()
 
 analyser = Analyser(qubit_count, program)
-analyser.abstract_interpret(True)
+analyser.abstract_interpret()
 # analyser.narrowing()
 inv = analyser.cfg.last_location.invariant
 print(trace_out(inv, target_inv_qubits, qubit_count))

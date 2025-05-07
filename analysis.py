@@ -177,10 +177,10 @@ class Analyser:
             # print("current:", str(cur))
             if self.update_from_parents(cur, widening_enabled):
                 if cur.need_print:
-                    print("location", cur.id)
-                    print(trace_out(cur.invariant, cur.print_ids, self.n))
+                    # print("location", cur.id)
+                    # print(trace_out(cur.invariant, cur.print_ids, self.n))
                     log("location" + str(cur.id))
-                    log(str(trace_out(cur.invariant, cur.print_ids, self.n)))
+                    log_matrix(trace_out(cur.invariant, cur.print_ids, self.n))
                 for next in cur.nexts:
                     if next.id not in need_update.queue:   
                         need_update.put(next.id)
@@ -238,7 +238,7 @@ class Analyser:
                 else:
                     # TODO: widening
                     if loc.need_widening and widening_enable:
-                        if np.array_equal(Q @ update_par_inv, Q):
+                        if mat_equal(Q @ update_par_inv, Q):
                             pass
                         else:
                             qubits = get_qubits(update_par_inv)
@@ -267,7 +267,7 @@ class Analyser:
         if old_inv is not None and loc.invariant is None:
             raise ValueError("invariant should not be None")
         if old_inv is not None and loc.invariant is not None:
-            return not np.array_equal(old_inv, loc.invariant)
+            return not mat_equal(old_inv, loc.invariant)
                     
     def narrowing(self):
         cfg = self.cfg
@@ -315,7 +315,7 @@ class Analyser:
                 Q = trace_out(Q, indices, self.n)
                 new_inv = sasaki_projection(old_inv, expand_operator(Q,indices, self.n))
                 loc.invariant = new_inv
-                return not np.array_equal(old_inv, new_inv)                
+                return not mat_equal(old_inv, new_inv)                
         else:
             loc.invariant = None
             return self.update_from_parents(loc, False)
