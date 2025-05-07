@@ -108,6 +108,10 @@ class Counter:
     
 def expand_operator(U, target_qubits, n_qubits):
     k = len(target_qubits)
+    if k == n_qubits:
+        return U
+    if k == 0:
+        return np.eye(2**n_qubits)
     target_counter = Counter(target_qubits, n_qubits)
 
     init_indices = []
