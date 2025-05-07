@@ -6,6 +6,7 @@ from pyvis.network import Network
 import webbrowser
 from queue import Queue
 from projector import *
+from logger import *
 # define enum for different types of statements
 SUBSPACE = 1
 SUBSPACE_WITH_SIG = 2
@@ -156,8 +157,10 @@ class Analyser:
             self.state = np.eye(2**n)
         if type == SUBSPACE_WITH_SIG:
             self.state = [np.eye(2**i) for i in sig]
+            
+        self.counts = 0
 
-    def abstract_interpret(self):
+    def abstract_interpret(self,widening_enabled=True):
         # step1 build the control flow graph
         cfg = ControlFlowGraph(self.program)
         self.cfg = cfg
@@ -168,17 +171,21 @@ class Analyser:
             need_update.put(next.id)
         while need_update.empty() == False:
             cur = cfg.locations[need_update.get()]
-            print("updating", cur.id)
+            self.counts += 1
+            log("updating" + str(cur.id))
             # print("updating", cur.id)
             # print("current:", str(cur))
-            if self.update_from_parents(cur):
+            if self.update_from_parents(cur, widening_enabled):
                 if cur.need_print:
                     print("location", cur.id)
                     print(trace_out(cur.invariant, cur.print_ids, self.n))
+                    log("location" + str(cur.id))
+                    log(str(trace_out(cur.invariant, cur.print_ids, self.n)))
                 for next in cur.nexts:
                     if next.id not in need_update.queue:   
                         need_update.put(next.id)
         print("done")           
+        print(self.counts)
         # for loc in cfg.locations:
             # print('location', loc.id,'; invariant:', loc.invariant)
     
